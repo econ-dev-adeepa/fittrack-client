@@ -19,14 +19,6 @@ async function saveCredentials(accessToken: string, refreshToken: string, idToke
   await SecureStore.setItemAsync('idToken', idToken);
 }
 
-async function getCredentials() {
-  const accessToken = await SecureStore.getItemAsync('accessToken');
-  const refreshToken = await SecureStore.getItemAsync('refreshToken');
-  const idToken = await SecureStore.getItemAsync('idToken');
-
-  return { accessToken, refreshToken, idToken };
-}
-
 export default function LoginScreen() {
   WebBrowser.maybeCompleteAuthSession();
 
