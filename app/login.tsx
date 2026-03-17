@@ -4,8 +4,14 @@ import { useEffect } from "react";
 
 import * as WebBrowser from 'expo-web-browser';
 import * as SecureStore from 'expo-secure-store';
+import { jwtDecode, JwtPayload } from "jwt-decode";
+import { router } from "expo-router";
 
-WebBrowser.maybeCompleteAuthSession();
+interface KeycloakJwtPayload extends JwtPayload {
+  realm_access?: {
+    roles: string[];
+  };
+}
 
 async function saveCredentials(accessToken: string, refreshToken: string, idToken: string) {
   await SecureStore.setItemAsync('accessToken', accessToken);
@@ -22,6 +28,8 @@ async function getCredentials() {
 }
 
 export default function LoginScreen() {
+  WebBrowser.maybeCompleteAuthSession();
+
   const discovery = useAutoDiscovery(process.env.EXPO_PUBLIC_KEYCLOAK_URL);
 
   const redirectUri = makeRedirectUri({
@@ -53,7 +61,17 @@ export default function LoginScreen() {
 
     if (tokenResult.accessToken && tokenResult.refreshToken && tokenResult.idToken) {
       await saveCredentials(tokenResult.accessToken, tokenResult.refreshToken, tokenResult.idToken);
-      console.log('Tokens saved successfully');
+
+      const decodedToken = jwtDecode<KeycloakJwtPayload>(tokenResult.accessToken);
+      const realmRoles = decodedToken.realm_access?.roles || [];
+      
+      if (realmRoles.includes('coach')) {
+        router.push('/(coach)/programs');
+      } else if (realmRoles.includes('customer')) {
+        router.push('/(customer)/coaches');
+      } else {
+        console.log('User has neither coach nor customer role');
+      }
     } else {
       console.error('Token exchange failed:', tokenResult);
     }
@@ -86,7 +104,9 @@ export default function LoginScreen() {
       <View style={styles.actions}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => promptAsync()}
+          onPress={() => { 
+            promptAsync()
+          }}
         >
           <Text style={styles.buttonText}>Sign In</Text>
         </TouchableOpacity>
