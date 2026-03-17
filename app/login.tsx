@@ -1,9 +1,25 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { exchangeCodeAsync, makeRedirectUri, useAuthRequest, useAutoDiscovery } from "expo-auth-session"
-import * as WebBrowser from 'expo-web-browser';
 import { useEffect } from "react";
 
+import * as WebBrowser from 'expo-web-browser';
+import * as SecureStore from 'expo-secure-store';
+
 WebBrowser.maybeCompleteAuthSession();
+
+async function saveCredentials(accessToken: string, refreshToken: string, idToken: string) {
+  await SecureStore.setItemAsync('accessToken', accessToken);
+  await SecureStore.setItemAsync('refreshToken', refreshToken);
+  await SecureStore.setItemAsync('idToken', idToken);
+}
+
+async function getCredentials() {
+  const accessToken = await SecureStore.getItemAsync('accessToken');
+  const refreshToken = await SecureStore.getItemAsync('refreshToken');
+  const idToken = await SecureStore.getItemAsync('idToken');
+
+  return { accessToken, refreshToken, idToken };
+}
 
 export default function LoginScreen() {
   const discovery = useAutoDiscovery(process.env.EXPO_PUBLIC_KEYCLOAK_URL);
@@ -35,9 +51,12 @@ export default function LoginScreen() {
       discovery!
     );
 
-    console.log('Access Token (JWT):', tokenResult.accessToken);
-    console.log('Refresh Token:', tokenResult.refreshToken);
-    console.log('ID Token:', tokenResult.idToken);
+    if (tokenResult.accessToken && tokenResult.refreshToken && tokenResult.idToken) {
+      await saveCredentials(tokenResult.accessToken, tokenResult.refreshToken, tokenResult.idToken);
+      console.log('Tokens saved successfully');
+    } else {
+      console.error('Token exchange failed:', tokenResult);
+    }
   }
 
   useEffect(() => {
