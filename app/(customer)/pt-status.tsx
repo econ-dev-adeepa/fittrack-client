@@ -10,7 +10,7 @@ interface PTRequest {
   id: string;
   coachId: string;
   gymId: string;
-  status: 'REQUESTED' | 'ACTIVE' | 'DENIED';
+  status: 'REQUESTED' | 'COACH_APPROVED'| 'ACTIVE' | 'DENIED';
   createdAt: string;
   updatedAt: string;
 }
@@ -23,6 +23,13 @@ const STATUS_CONFIG = {
     text: '#CA8A04',
     icon: '⏳',
     description: 'Your request is waiting for the coach to respond',
+  },
+  COACH_APPROVED: {
+    label: 'Coach Approved',
+    bg: '#DBEAFE',
+    text: '#2563EB',
+    icon: '👍',
+    description: 'Coach approved! Waiting for gym admin final approval',
   },
   ACTIVE: {
     label: 'Active',

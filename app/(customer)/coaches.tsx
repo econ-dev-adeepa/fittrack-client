@@ -16,7 +16,7 @@ interface CoachAffiliation {
 }
 
 
-export function CustomerCoachesScreen(){
+export default function CustomerCoachesScreen(){
     const [coaches, setCoaches] = useState<CoachAffiliation[]>([]);
     const [loading, setLoading] = useState(true);
     const [gymId, setGymId] = useState('');

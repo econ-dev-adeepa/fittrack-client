@@ -10,13 +10,14 @@ interface PTRequest {
     id: string;
     customerId: string;
     gymId: string;
-    status: 'REQUESTED' | 'ACTIVE' | 'DENIED';
+    status: 'REQUESTED' | 'COACH_APPROVED'| 'ACTIVE' | 'DENIED';
     createdAt: string;
 }
 
 
 const STATUS_CONFIG = {
     REQUESTED: { label: 'Pending', bg: '#FEF9C3', text: '#CA8A04' },
+    COACH_APPROVED: { label: 'Awaiting Gym Admin', bg: '#DBEAFE', text: '#2563EB' },
     ACTIVE: { label: 'Active', bg: '#DCFCE7', text: '#16A34A' },
     DENIED: { label: 'Denied', bg: '#FEE2E2', text: '#DC2626' },
 }
@@ -53,8 +54,8 @@ export default function CoachPTRequestsScreen() {
     }
 
 
-    const handleUpdateStatus = async (id: string, status: 'ACTIVE' | 'DENIED') => {
-        const action = status === 'ACTIVE' ? 'accept' : 'deny';
+    const handleUpdateStatus = async (id: string, status: 'COACH_APPROVED' | 'DENIED') => {
+        const action = status === 'COACH_APPROVED' ? 'approve' : 'deny';
         Alert.alert(
             `${action.charAt(0).toUpperCase() + action.slice(1)} Request`,
             `Are you sure you want to ${action} this PT request?`,
@@ -197,7 +198,7 @@ export default function CoachPTRequestsScreen() {
                         </TouchableOpacity>
                         <TouchableOpacity
                           style={styles.approveButton}
-                          onPress={() => handleUpdateStatus(req.id, 'ACTIVE')}
+                          onPress={() => handleUpdateStatus(req.id, 'COACH_APPROVED')}
                         >
                           <Text style={styles.approveButtonText}>✓ Approve</Text>
                         </TouchableOpacity>
