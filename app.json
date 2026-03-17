@@ -2,6 +2,7 @@
   "expo": {
     "name": "fittrack-mobile",
     "slug": "fittrack-mobile",
+    "scheme": "fittrack",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
