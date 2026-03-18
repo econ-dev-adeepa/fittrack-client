@@ -17,7 +17,11 @@ export default function SplashScreen() {
     useEffect(() => {
         authenticate()
             .then(async (tokens) => {
-                const userRoles = await getUserRoles(tokens!.accessToken!)
+                if (!tokens) {
+                    return router.replace('/login');
+                }
+
+                const userRoles = await getUserRoles(tokens.accessToken!)
                 setTimeout(() => redirectByRole(userRoles), 200);
             })
             .catch(error => {
