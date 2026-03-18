@@ -1,6 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
-import { refreshAsync } from 'expo-auth-session';
+import { makeRedirectUri, refreshAsync } from 'expo-auth-session';
+import * as WebBrowser from 'expo-web-browser';
 
 interface KeycloakJwtPayload extends JwtPayload {
   realm_access?: {
@@ -60,4 +61,50 @@ export async function authenticate() {
 export async function getUserRoles(accessToken: string) {
     const decodedToken = jwtDecode<KeycloakJwtPayload>(accessToken);
     return decodedToken.realm_access?.roles || [];
+}
+
+export async function logout() {
+    const { refreshToken, idToken } = await getCredentials();
+    const keycloakBaseUrl = process.env.EXPO_PUBLIC_KEYCLOAK_URL;
+    const redirectUri = makeRedirectUri({
+        scheme: 'fittrack',
+        path: 'login',
+    });
+
+    try {
+        if (keycloakBaseUrl && idToken) {
+            const endSessionUrl = new URL(`${keycloakBaseUrl}/protocol/openid-connect/logout`);
+            endSessionUrl.searchParams.set('client_id', 'fittrack-client');
+            endSessionUrl.searchParams.set('id_token_hint', idToken);
+            endSessionUrl.searchParams.set('post_logout_redirect_uri', redirectUri);
+
+            await WebBrowser.openBrowserAsync(endSessionUrl.toString());
+        }
+
+        if (keycloakBaseUrl && refreshToken) {
+            const logoutEndpoint = `${keycloakBaseUrl}/protocol/openid-connect/logout`;
+            const body = new URLSearchParams({
+                client_id: 'fittrack-client',
+                refresh_token: refreshToken,
+            });
+
+            if (idToken) {
+                body.append('id_token_hint', idToken);
+            }
+
+            await fetch(logoutEndpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: body.toString(),
+            });
+        }
+    } finally {
+        await Promise.all([
+            SecureStore.deleteItemAsync('accessToken'),
+            SecureStore.deleteItemAsync('refreshToken'),
+            SecureStore.deleteItemAsync('idToken'),
+        ]);
+    }
 }

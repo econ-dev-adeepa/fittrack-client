@@ -1,21 +1,16 @@
 import { useEffect } from 'react';
 import { router } from 'expo-router';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import * as SecureStore from 'expo-secure-store';
+import { logout } from '../../lib/authenticate';
 
 export default function CoachLogoutScreen() {
   useEffect(() => {
-    const clearSessionAndRedirect = async () => {
-      await Promise.all([
-        SecureStore.deleteItemAsync('accessToken'),
-        SecureStore.deleteItemAsync('refreshToken'),
-        SecureStore.deleteItemAsync('idToken'),
-      ]);
-
+    const logoutAndRedirect = async () => {
+      await logout();
       router.replace('/login');
     };
 
-    clearSessionAndRedirect();
+    logoutAndRedirect();
   }, []);
 
   return (
