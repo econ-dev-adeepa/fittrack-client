@@ -41,19 +41,8 @@ export default function LoginRedirect() {
 
     if (tokenResult.accessToken && tokenResult.refreshToken && tokenResult.idToken) {
       await saveCredentials(tokenResult.accessToken, tokenResult.refreshToken, tokenResult.idToken);
-
-      const decodedToken = jwtDecode<KeycloakJwtPayload>(tokenResult.accessToken);
-      const realmRoles = decodedToken.realm_access?.roles || [];
-      
-      if (realmRoles.includes('coach')) {
-        router.push('/(coach)/programs');
-      } else if (realmRoles.includes('customer')) {
-        router.push('/(customer)/coaches');
-      } else {
-        console.log('User has neither coach nor customer role');
-      }
     } else {
-      console.error('Token exchange failed:', tokenResult);
+      throw new Error(`Token exchange failed: ${JSON.stringify(tokenResult)}`);
     }
   }
 
@@ -61,11 +50,12 @@ export default function LoginRedirect() {
     if (response?.type === 'success') {
       const { code } = response.params;
 
-      try {
-        exchangeCodeForToken(code);
-      } catch (error) {
-        console.error('Token Exchange Error:', error);
-      }
+      exchangeCodeForToken(code)
+        .then(() => router.replace('/'))
+        .catch(error => {
+          console.error('Token exchange error:', error);
+          router.replace('/login');
+        });
     } else if (response?.type === 'error') {
       console.error('Auth Error:', response.error);
     }
