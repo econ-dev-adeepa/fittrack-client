@@ -19,13 +19,14 @@ async function saveCredentials(accessToken: string, refreshToken: string, idToke
   await SecureStore.setItemAsync('idToken', idToken);
 }
 
-export default function LoginScreen() {
-  WebBrowser.maybeCompleteAuthSession();
+WebBrowser.maybeCompleteAuthSession();
 
+export default function LoginScreen() {
   const discovery = useAutoDiscovery(process.env.EXPO_PUBLIC_KEYCLOAK_URL);
 
   const redirectUri = makeRedirectUri({
     scheme: "fittrack",
+    path: "login",
   })
 
   console.log('Redirect URI:', redirectUri);
@@ -34,6 +35,10 @@ export default function LoginScreen() {
       clientId: "fittrack-client",
       redirectUri,
       scopes: ["openid", "profile", "email"],
+      extraParams: {
+        prompt: 'login',
+        max_age: '0',
+      },
     },
     discovery
   );
