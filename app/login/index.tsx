@@ -1,92 +1,13 @@
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { exchangeCodeAsync, makeRedirectUri, useAuthRequest, useAutoDiscovery } from "expo-auth-session"
-import { useEffect } from "react";
+import { useContext } from "react";
 
 import * as WebBrowser from 'expo-web-browser';
-import * as SecureStore from 'expo-secure-store';
-import { jwtDecode, JwtPayload } from "jwt-decode";
-import { router } from "expo-router";
-
-interface KeycloakJwtPayload extends JwtPayload {
-  realm_access?: {
-    roles: string[];
-  };
-}
-
-async function saveCredentials(accessToken: string, refreshToken: string, idToken: string) {
-  await SecureStore.setItemAsync('accessToken', accessToken);
-  await SecureStore.setItemAsync('refreshToken', refreshToken);
-  await SecureStore.setItemAsync('idToken', idToken);
-}
+import AuthContext from "./auth_context";
 
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
-  const discovery = useAutoDiscovery(process.env.EXPO_PUBLIC_KEYCLOAK_URL);
-
-  const redirectUri = makeRedirectUri({
-    scheme: "fittrack",
-    path: "login",
-  })
-
-  console.log('Redirect URI:', redirectUri);
-  const [request, response, promptAsync] = useAuthRequest(
-    {
-      clientId: "fittrack-client",
-      redirectUri,
-      scopes: ["openid", "profile", "email"],
-      extraParams: {
-        prompt: 'login',
-        max_age: '0',
-      },
-    },
-    discovery
-  );
-
-  const exchangeCodeForToken = async (code: string) => {
-    const tokenResult = await exchangeCodeAsync(
-      {
-        clientId: "fittrack-client",
-        code: code,
-        redirectUri: redirectUri,
-        extraParams: {
-          code_verifier: request!.codeVerifier!, 
-        },
-      },
-      discovery!
-    );
-
-    if (tokenResult.accessToken && tokenResult.refreshToken && tokenResult.idToken) {
-      await saveCredentials(tokenResult.accessToken, tokenResult.refreshToken, tokenResult.idToken);
-
-      const decodedToken = jwtDecode<KeycloakJwtPayload>(tokenResult.accessToken);
-      const realmRoles = decodedToken.realm_access?.roles || [];
-      
-      if (realmRoles.includes('coach')) {
-        router.push('/(coach)/programs');
-      } else if (realmRoles.includes('customer')) {
-        router.push('/(customer)/coaches');
-      } else {
-        console.log('User has neither coach nor customer role');
-      }
-    } else {
-      console.error('Token exchange failed:', tokenResult);
-    }
-  }
-
-  useEffect(() => {
-    if (response?.type === 'success') {
-      const { code } = response.params;
-
-      try {
-        exchangeCodeForToken(code);
-      } catch (error) {
-        console.error('Token Exchange Error:', error);
-      }
-    } else if (response?.type === 'error') {
-      console.error('Auth Error:', response.error);
-    }
-  }, [response]);
+  const { promptAsync } = useContext(AuthContext)!;
 
   return (
     <View style={styles.container}>
