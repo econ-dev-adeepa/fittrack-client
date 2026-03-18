@@ -43,7 +43,6 @@ export default function CustomerLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="log-out-outline" size={size} color={color} />
           ),
-          headerShown: false,
         }}
       />
     </Tabs>

@@ -44,7 +44,6 @@ export default function CoachLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="log-out-outline" size={size} color={color} />
           ),
-          headerShown: false,
         }}
       />
     </Tabs>
