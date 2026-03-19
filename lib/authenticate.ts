@@ -2,6 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
 import { makeRedirectUri, refreshAsync } from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
+import keyStore from '../stores/keyStore';
 
 interface KeycloakJwtPayload extends JwtPayload {
   realm_access?: {
@@ -18,6 +19,7 @@ async function getCredentials() {
 }
 
 export async function authenticate() {
+    const setTokens = keyStore.getState().setCredentials;
     const tokens = await getCredentials();
 
     if (!tokens.accessToken || !tokens.refreshToken || !tokens.idToken) {
@@ -47,6 +49,8 @@ export async function authenticate() {
         await SecureStore.setItemAsync('accessToken', refreshedTokens.accessToken);
         await SecureStore.setItemAsync('refreshToken', refreshedTokens.refreshToken);
         await SecureStore.setItemAsync('idToken', refreshedTokens.idToken);
+
+        setTokens(refreshedTokens.accessToken, refreshedTokens.refreshToken, refreshedTokens.idToken);
 
         return {
             accessToken: refreshedTokens.accessToken,
