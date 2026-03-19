@@ -19,6 +19,20 @@ async function getCredentials() {
   return { accessToken, refreshToken, idToken };
 }
 
+export async function saveCredentials(accessToken?: string, refreshToken?: string, idToken?: string) {
+    accessToken = accessToken || keyStore.getState().accessToken;
+    refreshToken = refreshToken || keyStore.getState().refreshToken;
+    idToken = idToken || keyStore.getState().idToken;
+
+    if (accessToken) await SecureStore.setItemAsync('accessToken', accessToken);
+    if (refreshToken) await SecureStore.setItemAsync('refreshToken', refreshToken);
+    if (idToken) await SecureStore.setItemAsync('idToken', idToken);
+
+    const setTokens = keyStore.getState().setCredentials;
+    
+    setTokens(accessToken, refreshToken, idToken);
+}
+
 export function isAccessTokenValid(token: string) {
     const decodedToken = jwtDecode(token);
     const currentTime = Math.floor(Date.now() / 1000);
@@ -48,10 +62,7 @@ export async function refreshAccessToken(refreshToken: string) {
     const refreshedAccessToken = refreshedTokens.accessToken;
     const refreshedRefreshToken = refreshedTokens.refreshToken || refreshToken;
 
-    await Promise.all([
-        SecureStore.setItemAsync('accessToken', refreshedAccessToken),
-        SecureStore.setItemAsync('refreshToken', refreshedRefreshToken),
-    ]);
+    await saveCredentials(refreshedAccessToken, refreshedRefreshToken);
 
     return {
         accessToken: refreshedAccessToken,
@@ -60,7 +71,6 @@ export async function refreshAccessToken(refreshToken: string) {
 }
 
 export async function authenticate() {
-    const setTokens = keyStore.getState().setCredentials;
     const tokens = await getCredentials();
 
     if (!tokens.accessToken || !tokens.refreshToken || !tokens.idToken) {
@@ -78,7 +88,7 @@ export async function authenticate() {
     }
 
     const { accessToken, refreshToken } = refreshedTokens;
-    setTokens(accessToken, refreshToken, tokens.idToken);
+    saveCredentials(accessToken, refreshToken);
     return { accessToken, refreshToken, idToken: tokens.idToken };
 }
 
