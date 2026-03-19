@@ -1,5 +1,7 @@
 import axios from 'axios';
 import keyStore from '../stores/keyStore';
+import tokenRefreshInterceptor from './refreshInterceptor';
+import setupTokenRefreshInterceptor from './refreshInterceptor';
 
 const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -21,6 +23,8 @@ api.interceptors.request.use(async (config) => {
 
   return config;
 });
+
+setupTokenRefreshInterceptor(api);
 
 // Programs API
 export const programsAPI = {
