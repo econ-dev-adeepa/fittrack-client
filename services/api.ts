@@ -1,7 +1,7 @@
 import axios from 'axios';
 import keyStore from '../stores/keyStore';
 
-const BASE_URL = 'http://localhost:3000/api';
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
 
 const api = axios.create({
   baseURL: BASE_URL,
