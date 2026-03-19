@@ -38,6 +38,18 @@ export default function HomeScreen() {
           </View>
           <Text style={styles.arrow}>→</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.roleCard}
+          onPress={() => router.push('/(admin)/affiliations')}
+        >
+          <Text style={styles.roleIcon}>🏢</Text>
+          <View style={styles.roleInfo}>
+            <Text style={styles.roleTitle}>Gym Admin</Text>
+            <Text style={styles.roleSubtitle}>Manage affiliations, programs & PT</Text>
+          </View>
+          <Text style={styles.arrow}>→</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );

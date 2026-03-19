@@ -54,29 +54,44 @@ export default function CoachPTRequestsScreen() {
     }
 
 
-    const handleUpdateStatus = async (id: string, status: 'COACH_APPROVED' | 'DENIED') => {
-        const action = status === 'COACH_APPROVED' ? 'approve' : 'deny';
-        Alert.alert(
-            `${action.charAt(0).toUpperCase() + action.slice(1)} Request`,
-            `Are you sure you want to ${action} this PT request?`,
-            [
-                {text: 'Cancel', style: 'cancel'},
-                {
-                    text: action.charAt(0).toUpperCase() + action.slice(1),
-                    style: status === 'DENIED' ? 'destructive' : 'default',
-                    onPress: async () => {
-                        try{
-                            await ptAPI.updateStatus(id, status);
-                            fetchData();
+    // const handleUpdateStatus = async (id: string, status: 'COACH_APPROVED' | 'DENIED') => {
+    //     const action = status === 'COACH_APPROVED' ? 'approve' : 'deny';
+    //     Alert.alert(
+    //         `${action.charAt(0).toUpperCase() + action.slice(1)} Request`,
+    //         `Are you sure you want to ${action} this PT request?`,
+    //         [
+    //             {text: 'Cancel', style: 'cancel'},
+    //             {
+    //                 text: action.charAt(0).toUpperCase() + action.slice(1),
+    //                 style: status === 'DENIED' ? 'destructive' : 'default',
+    //                 onPress: async () => {
+    //                     try{
+    //                         await ptAPI.updateStatus(id, status);
+    //                         fetchData();
 
-                        }catch(err){
-                            Alert.alert('Error', `Failed to ${action} request`);
-                        }
-                    }
-                }
-            ]
-        )
-    }
+    //                     }catch(err){
+    //                         Alert.alert('Error', `Failed to ${action} request`);
+    //                     }
+    //                 }
+    //             }
+    //         ]
+    //     )
+    // }
+
+
+    const handleUpdateStatus = async (id: string, status: 'COACH_APPROVED' | 'DENIED') => {
+      const action = status === 'COACH_APPROVED' ? 'approve' : 'deny';
+      const confirmed = window.confirm(`Are you sure you want to ${action} this PT request?`);
+      if (!confirmed) return;
+
+      try {
+        await ptAPI.updateStatus(id, status);
+        fetchData();
+        window.alert(`PT request ${action}d successfully!`);
+      } catch (err) {
+        window.alert(`Failed to ${action} request. Please try again.`);
+      }
+    };
 
 
     const filteredRequests = activeFilter === 'ALL'
