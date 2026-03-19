@@ -6,9 +6,7 @@ import keyStore from '../stores/keyStore';
 import awaitable from './awaitable';
 
 interface KeycloakJwtPayload extends JwtPayload {
-  realm_access?: {
-    roles: string[];
-  };
+  user_role: string;
 }
 
 export async function loadCredentials() {
@@ -75,7 +73,7 @@ export async function refreshAccessToken(refreshToken: string) {
 
 export async function getUserRoles(accessToken: string) {
     const decodedToken = jwtDecode<KeycloakJwtPayload>(accessToken);
-    return decodedToken.realm_access?.roles || [];
+    return decodedToken.user_role;
 }
 
 export async function logout() {

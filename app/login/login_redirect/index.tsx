@@ -5,6 +5,8 @@ import AuthContext from "../../../stores/authContext";
 import { router } from "expo-router";
 import { jwtDecode, JwtPayload } from "jwt-decode";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { getUserRoles } from "../../../lib/authenticate";
+import keyStore from "../../../stores/keyStore";
 
 async function saveCredentials(accessToken: string, refreshToken: string, idToken: string) {
   await SecureStore.setItemAsync('accessToken', accessToken);
@@ -51,7 +53,10 @@ export default function LoginRedirect() {
       const { code } = response.params;
 
       exchangeCodeForToken(code)
-        .then(() => router.replace('/'))
+        .then(() => {
+          getUserRoles(keyStore.getState().accessToken!)
+          router.replace('/')
+        })
         .catch(error => {
           console.error('Token exchange error:', error);
           router.replace('/login');

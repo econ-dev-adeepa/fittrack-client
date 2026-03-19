@@ -4,12 +4,12 @@ import { router } from "expo-router";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 export default function SplashScreen() {
-    const redirectByRole = (roles: string[]) => {
-        if (roles.includes('coach')) {
+    const redirectByRole = (role: string) => {
+        if (role === 'Coach') {
             router.replace('/(coach)/programs');
-        } else if (roles.includes('customer')) {
+        } else if (role === 'Customer') {
             router.replace('/(customer)/coaches');
-        } else if (roles.includes('gym-admin')) {
+        } else if (role === 'Gym Admin') {
             router.replace('/(admin)/affiliations');
         } else {
             router.replace('/login');
@@ -54,8 +54,8 @@ export default function SplashScreen() {
             .then(async (tokens) => {
                 if (!isActive) return;
 
-                const userRoles = await getUserRoles(tokens.accessToken)
-                setTimeout(() => redirectByRole(userRoles), 200);
+                const userRole = await getUserRoles(tokens.accessToken)
+                setTimeout(() => redirectByRole(userRole), 200);
             })
             .catch(error => {
                 if ((error.message !== 'Component unmounted') && isActive) {
