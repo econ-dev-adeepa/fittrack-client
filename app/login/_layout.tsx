@@ -24,7 +24,6 @@ export default function LoginLayout() {
     discovery
   );
 
-  console.log("redirectUri:", redirectUri);
   return (
     <AuthContext.Provider value={{ request, response, promptAsync, redirectUri, discovery }}>
       <Slot />
