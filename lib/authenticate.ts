@@ -11,12 +11,15 @@ interface KeycloakJwtPayload extends JwtPayload {
   };
 }
 
-async function getCredentials() {
-  const accessToken = await SecureStore.getItemAsync('accessToken');
-  const refreshToken = await SecureStore.getItemAsync('refreshToken');
-  const idToken = await SecureStore.getItemAsync('idToken');
+export async function loadCredentials() {
+    const accessToken = (await SecureStore.getItemAsync('accessToken')) || undefined;
+    const refreshToken = (await SecureStore.getItemAsync('refreshToken')) || undefined;
+    const idToken = (await SecureStore.getItemAsync('idToken')) || undefined;
 
-  return { accessToken, refreshToken, idToken };
+    keyStore.getState().clearCredentials();
+    keyStore.getState().setCredentials(accessToken, refreshToken, idToken);
+
+    return { accessToken, refreshToken, idToken };
 }
 
 export async function saveCredentials(accessToken?: string, refreshToken?: string, idToken?: string) {
@@ -33,7 +36,7 @@ export async function saveCredentials(accessToken?: string, refreshToken?: strin
     setTokens(accessToken, refreshToken, idToken);
 }
 
-export function isAccessTokenValid(token: string) {
+export function isTokenValid(token: string) {
     const decodedToken = jwtDecode(token);
     const currentTime = Math.floor(Date.now() / 1000);
 
@@ -70,35 +73,13 @@ export async function refreshAccessToken(refreshToken: string) {
     };
 }
 
-export async function authenticate() {
-    const tokens = await getCredentials();
-
-    if (!tokens.accessToken || !tokens.refreshToken || !tokens.idToken) {
-        return null;
-    }
-
-    if (isAccessTokenValid(tokens.accessToken)) {
-        return tokens;
-    }
-
-    const [err, refreshedTokens] = await awaitable(refreshAccessToken(tokens.refreshToken));
-
-    if (err) {
-        throw new Error('Token refresh failed');
-    }
-
-    const { accessToken, refreshToken } = refreshedTokens;
-    saveCredentials(accessToken, refreshToken);
-    return { accessToken, refreshToken, idToken: tokens.idToken };
-}
-
 export async function getUserRoles(accessToken: string) {
     const decodedToken = jwtDecode<KeycloakJwtPayload>(accessToken);
     return decodedToken.realm_access?.roles || [];
 }
 
 export async function logout() {
-    const { refreshToken, idToken } = await getCredentials();
+    const { refreshToken, idToken } = keyStore.getState();
     const keycloakBaseUrl = process.env.EXPO_PUBLIC_KEYCLOAK_URL;
     const redirectUri = makeRedirectUri({
         scheme: 'fittrack',
