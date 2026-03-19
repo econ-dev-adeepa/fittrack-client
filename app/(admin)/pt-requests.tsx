@@ -12,6 +12,9 @@ interface PTRequest {
   gymId: string;
   status: string;
   createdAt: string;
+  preferredDays?: string;
+  preferredTime?: string;
+  notes?: string;
 }
 
 export default function AdminPTRequestsScreen() {
@@ -108,13 +111,37 @@ export default function AdminPTRequestsScreen() {
                   </View>
                 </View>
                 <View style={styles.cardMeta}>
-                  <Text style={styles.metaText}>
+                <Text style={styles.metaText}>
                     🏋️ Coach: {req.coachId.slice(0, 16)}...
-                  </Text>
-                  <Text style={styles.metaText}>
+                </Text>
+                <Text style={styles.metaText}>
                     📅 {new Date(req.createdAt).toLocaleDateString()}
-                  </Text>
+                </Text>
                 </View>
+
+                {/* Schedule Details */}
+                {(req.preferredDays || req.preferredTime || req.notes) && (
+                <View style={styles.scheduleBox}>
+                    {req.preferredDays && (
+                    <View style={styles.scheduleRow}>
+                        <Text style={styles.scheduleIcon}>📆</Text>
+                        <Text style={styles.scheduleText}>Days: {req.preferredDays}</Text>
+                    </View>
+                    )}
+                    {req.preferredTime && (
+                    <View style={styles.scheduleRow}>
+                        <Text style={styles.scheduleIcon}>🕐</Text>
+                        <Text style={styles.scheduleText}>Time: {req.preferredTime}</Text>
+                    </View>
+                    )}
+                    {req.notes && (
+                    <View style={styles.scheduleRow}>
+                        <Text style={styles.scheduleIcon}>📝</Text>
+                        <Text style={styles.scheduleText}>Notes: {req.notes}</Text>
+                    </View>
+                    )}
+                </View>
+                )}
                 <View style={styles.actions}>
                   <TouchableOpacity
                     style={styles.rejectButton}
@@ -201,4 +228,14 @@ const styles = StyleSheet.create({
   emptyIcon: { fontSize: 48, marginBottom: 12 },
   emptyTitle: { fontSize: 18, fontWeight: '600', color: '#1E293B', marginBottom: 4 },
   emptySubtitle: { fontSize: 14, color: '#64748B', textAlign: 'center' },
+  
+  scheduleBox: {
+  backgroundColor: '#F8FAFC', borderRadius: 8,
+  padding: 10, marginBottom: 12, gap: 6,
+},
+scheduleRow: {
+  flexDirection: 'row', alignItems: 'center', gap: 6,
+},
+scheduleIcon: { fontSize: 13 },
+scheduleText: { fontSize: 13, color: '#475569', fontWeight: '500' },
 });
