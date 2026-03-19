@@ -2,7 +2,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { useContext } from "react";
 
 import * as WebBrowser from 'expo-web-browser';
-import AuthContext from "./auth_context";
+import AuthContext from "../../stores/authContext";
 
 WebBrowser.maybeCompleteAuthSession();
 

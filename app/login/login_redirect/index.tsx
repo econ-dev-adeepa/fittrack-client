@@ -1,7 +1,7 @@
 import { exchangeCodeAsync } from "expo-auth-session";
 import * as SecureStore from 'expo-secure-store';
 import { useContext, useEffect } from "react";
-import AuthContext from "../auth_context";
+import AuthContext from "../../../stores/authContext";
 import { router } from "expo-router";
 import { jwtDecode, JwtPayload } from "jwt-decode";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";

@@ -1,6 +1,6 @@
 import { makeRedirectUri, useAuthRequest, useAutoDiscovery } from "expo-auth-session";
 import { Slot } from "expo-router";
-import AuthContext from "./auth_context";
+import AuthContext from "../../stores/authContext";
 
 
 export default function LoginLayout() {
