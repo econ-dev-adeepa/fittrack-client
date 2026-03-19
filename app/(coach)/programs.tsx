@@ -47,7 +47,6 @@ export default function CoachProgramsScreen() {
 
         }catch(err){
             Alert.alert('Error', 'Failed to load programs');
-        
         } finally {
             setLoading(false);
         }
