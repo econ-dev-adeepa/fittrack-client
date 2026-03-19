@@ -1,6 +1,6 @@
 import { makeRedirectUri, useAuthRequest, useAutoDiscovery } from "expo-auth-session";
 import { Slot } from "expo-router";
-import AuthContext from "./auth_context";
+import AuthContext from "../../stores/authContext";
 
 
 export default function LoginLayout() {
@@ -24,7 +24,6 @@ export default function LoginLayout() {
     discovery
   );
 
-  console.log("redirectUri:", redirectUri);
   return (
     <AuthContext.Provider value={{ request, response, promptAsync, redirectUri, discovery }}>
       <Slot />

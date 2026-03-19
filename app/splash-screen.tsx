@@ -1,15 +1,15 @@
 import { useEffect } from "react"
-import { authenticate, getUserRoles } from "../lib/authenticate";
+import { getUserRoles, isTokenValid, loadCredentials, refreshAccessToken, saveCredentials } from "../lib/authenticate";
 import { router } from "expo-router";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 export default function SplashScreen() {
-    const redirectByRole = (roles: string[]) => {
-        if (roles.includes('coach')) {
+    const redirectByRole = (role: string) => {
+        if (role === 'Coach') {
             router.replace('/(coach)/programs');
-        } else if (roles.includes('customer')) {
+        } else if (role === 'Customer') {
             router.replace('/(customer)/coaches');
-        } else if (roles.includes('gym-admin')) {
+        } else if (role === 'Gym Admin') {
             router.replace('/(admin)/affiliations');
         } else {
             router.replace('/login');
@@ -17,19 +17,53 @@ export default function SplashScreen() {
     }
 
     useEffect(() => {
+        let isActive = true;
+
+        const authenticate = async () => {
+            const {accessToken, refreshToken, idToken} = await loadCredentials();
+            if (!isActive) throw new Error('Component unmounted');
+
+            if (!accessToken || !refreshToken || !idToken) {
+                throw new Error('Missing tokens');
+            }
+
+            if (!isTokenValid(refreshToken)) {
+                throw new Error('Invalid refresh token');
+            }
+
+            if (!isTokenValid(accessToken)) {
+                try {
+                    const newTokens = await refreshAccessToken(refreshToken)
+                    await saveCredentials(newTokens.accessToken, newTokens.refreshToken);
+                    const newCredentials = await loadCredentials();
+
+                    return { 
+                        accessToken: newCredentials.accessToken!,
+                        refreshToken: newCredentials.refreshToken!,
+                        idToken: newCredentials.idToken!,
+                    }
+                } catch (error) {
+                    throw new Error('Failed to refresh access token');
+                }
+            }
+
+            return { accessToken, refreshToken, idToken };
+        }
+
         authenticate()
             .then(async (tokens) => {
-                if (!tokens) {
-                    return router.replace('/login');
-                }
+                if (!isActive) return;
 
-                const userRoles = await getUserRoles(tokens.accessToken!)
-                setTimeout(() => redirectByRole(userRoles), 200);
+                const userRole = await getUserRoles(tokens.accessToken)
+                setTimeout(() => redirectByRole(userRole), 200);
             })
             .catch(error => {
-                console.error('Authentication error:', error);
-                router.replace('/login');
+                if ((error.message !== 'Component unmounted') && isActive) {
+                    router.replace('/login');
+                }
             })
+        
+        return () => { isActive = false };
     }, []);
 
     return (

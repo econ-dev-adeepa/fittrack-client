@@ -1,70 +1,83 @@
 import * as SecureStore from 'expo-secure-store';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
-import { makeRedirectUri, refreshAsync } from 'expo-auth-session';
+import { fetchDiscoveryAsync, makeRedirectUri, refreshAsync } from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
+import keyStore from '../stores/keyStore';
+import awaitable from './awaitable';
 
 interface KeycloakJwtPayload extends JwtPayload {
-  realm_access?: {
-    roles: string[];
-  };
+  user_role: string;
 }
 
-async function getCredentials() {
-  const accessToken = await SecureStore.getItemAsync('accessToken');
-  const refreshToken = await SecureStore.getItemAsync('refreshToken');
-  const idToken = await SecureStore.getItemAsync('idToken');
+export async function loadCredentials() {
+    const accessToken = (await SecureStore.getItemAsync('accessToken')) || undefined;
+    const refreshToken = (await SecureStore.getItemAsync('refreshToken')) || undefined;
+    const idToken = (await SecureStore.getItemAsync('idToken')) || undefined;
 
-  return { accessToken, refreshToken, idToken };
+    keyStore.getState().clearCredentials();
+    keyStore.getState().setCredentials(accessToken, refreshToken, idToken);
+
+    return { accessToken, refreshToken, idToken };
 }
 
-export async function authenticate() {
-    const tokens = await getCredentials();
+export async function saveCredentials(accessToken?: string, refreshToken?: string, idToken?: string) {
+    accessToken = accessToken || keyStore.getState().accessToken;
+    refreshToken = refreshToken || keyStore.getState().refreshToken;
+    idToken = idToken || keyStore.getState().idToken;
 
-    if (!tokens.accessToken || !tokens.refreshToken || !tokens.idToken) {
-        return null;
-    }
+    if (accessToken) await SecureStore.setItemAsync('accessToken', accessToken);
+    if (refreshToken) await SecureStore.setItemAsync('refreshToken', refreshToken);
+    if (idToken) await SecureStore.setItemAsync('idToken', idToken);
 
-    const decodedToken = jwtDecode(tokens.accessToken);
+    const setTokens = keyStore.getState().setCredentials;
+    
+    setTokens(accessToken, refreshToken, idToken);
+}
+
+export function isTokenValid(token: string) {
+    const decodedToken = jwtDecode(token);
     const currentTime = Math.floor(Date.now() / 1000);
 
-    const isAccessTokenValid = decodedToken.exp ? decodedToken.exp > (currentTime + 60): false; // 60 seconds buffer
+    return decodedToken.exp ? decodedToken.exp > (currentTime + 60): false; // 60 seconds buffer
+}
 
-    if (isAccessTokenValid) {
-        return tokens;
-    }
-
-    const tokenEndpoint = `${process.env.EXPO_PUBLIC_KEYCLOAK_URL}/protocol/openid-connect/token`;
-
-    const refreshedTokens = await refreshAsync(
-        {
-            clientId: 'fittrack-client',
-            refreshToken: tokens.refreshToken,
-        },
-        { tokenEndpoint }
+export async function refreshAccessToken(refreshToken: string) {
+    const [errDiscovery, discovery] = await awaitable(
+        fetchDiscoveryAsync(process.env.EXPO_PUBLIC_KEYCLOAK_URL)
     );
 
-    if (refreshedTokens.accessToken && refreshedTokens.refreshToken && refreshedTokens.idToken) {
-        await SecureStore.setItemAsync('accessToken', refreshedTokens.accessToken);
-        await SecureStore.setItemAsync('refreshToken', refreshedTokens.refreshToken);
-        await SecureStore.setItemAsync('idToken', refreshedTokens.idToken);
-
-        return {
-            accessToken: refreshedTokens.accessToken,
-            refreshToken: refreshedTokens.refreshToken,
-            idToken: refreshedTokens.idToken,
-        };
+    if (errDiscovery) {
+        throw new Error('Failed to fetch discovery document');
     }
 
-    return null;
+    const [errRefresh, refreshedTokens] = await awaitable(refreshAsync({
+        clientId: 'fittrack-client',
+        refreshToken: refreshToken
+    }, discovery));
+
+    if (errRefresh) {
+        console.error('Refresh Token Error:', errRefresh);
+        throw new Error('Failed to refresh access token');
+    }
+
+    const refreshedAccessToken = refreshedTokens.accessToken;
+    const refreshedRefreshToken = refreshedTokens.refreshToken || refreshToken;
+
+    await saveCredentials(refreshedAccessToken, refreshedRefreshToken);
+
+    return {
+        accessToken: refreshedAccessToken,
+        refreshToken: refreshedRefreshToken,
+    };
 }
 
 export async function getUserRoles(accessToken: string) {
     const decodedToken = jwtDecode<KeycloakJwtPayload>(accessToken);
-    return decodedToken.realm_access?.roles || [];
+    return decodedToken.user_role;
 }
 
 export async function logout() {
-    const { refreshToken, idToken } = await getCredentials();
+    const { refreshToken, idToken } = keyStore.getState();
     const keycloakBaseUrl = process.env.EXPO_PUBLIC_KEYCLOAK_URL;
     const redirectUri = makeRedirectUri({
         scheme: 'fittrack',
