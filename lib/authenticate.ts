@@ -1,8 +1,9 @@
 import * as SecureStore from 'expo-secure-store';
 import { jwtDecode, JwtPayload } from 'jwt-decode';
-import { makeRedirectUri, refreshAsync } from 'expo-auth-session';
+import { fetchDiscoveryAsync, makeRedirectUri, refreshAsync } from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import keyStore from '../stores/keyStore';
+import awaitable from './awaitable';
 
 interface KeycloakJwtPayload extends JwtPayload {
   realm_access?: {
@@ -18,6 +19,46 @@ async function getCredentials() {
   return { accessToken, refreshToken, idToken };
 }
 
+export function isAccessTokenValid(token: string) {
+    const decodedToken = jwtDecode(token);
+    const currentTime = Math.floor(Date.now() / 1000);
+
+    return decodedToken.exp ? decodedToken.exp > (currentTime + 60): false; // 60 seconds buffer
+}
+
+export async function refreshAccessToken(refreshToken: string) {
+    const [errDiscovery, discovery] = await awaitable(
+        fetchDiscoveryAsync(process.env.EXPO_PUBLIC_KEYCLOAK_URL)
+    );
+
+    if (errDiscovery) {
+        throw new Error('Failed to fetch discovery document');
+    }
+
+    const [errRefresh, refreshedTokens] = await awaitable(refreshAsync({
+        clientId: 'fittrack-client',
+        refreshToken: refreshToken
+    }, discovery));
+
+    if (errRefresh) {
+        console.error('Refresh Token Error:', errRefresh);
+        throw new Error('Failed to refresh access token');
+    }
+
+    const refreshedAccessToken = refreshedTokens.accessToken;
+    const refreshedRefreshToken = refreshedTokens.refreshToken || refreshToken;
+
+    await Promise.all([
+        SecureStore.setItemAsync('accessToken', refreshedAccessToken),
+        SecureStore.setItemAsync('refreshToken', refreshedRefreshToken),
+    ]);
+
+    return {
+        accessToken: refreshedAccessToken,
+        refreshToken: refreshedRefreshToken,
+    };
+}
+
 export async function authenticate() {
     const setTokens = keyStore.getState().setCredentials;
     const tokens = await getCredentials();
@@ -26,40 +67,19 @@ export async function authenticate() {
         return null;
     }
 
-    const decodedToken = jwtDecode(tokens.accessToken);
-    const currentTime = Math.floor(Date.now() / 1000);
-
-    const isAccessTokenValid = decodedToken.exp ? decodedToken.exp > (currentTime + 60): false; // 60 seconds buffer
-
-    if (isAccessTokenValid) {
+    if (isAccessTokenValid(tokens.accessToken)) {
         return tokens;
     }
 
-    const tokenEndpoint = `${process.env.EXPO_PUBLIC_KEYCLOAK_URL}/protocol/openid-connect/token`;
+    const [err, refreshedTokens] = await awaitable(refreshAccessToken(tokens.refreshToken));
 
-    const refreshedTokens = await refreshAsync(
-        {
-            clientId: 'fittrack-client',
-            refreshToken: tokens.refreshToken,
-        },
-        { tokenEndpoint }
-    );
-
-    if (refreshedTokens.accessToken && refreshedTokens.refreshToken && refreshedTokens.idToken) {
-        await SecureStore.setItemAsync('accessToken', refreshedTokens.accessToken);
-        await SecureStore.setItemAsync('refreshToken', refreshedTokens.refreshToken);
-        await SecureStore.setItemAsync('idToken', refreshedTokens.idToken);
-
-        setTokens(refreshedTokens.accessToken, refreshedTokens.refreshToken, refreshedTokens.idToken);
-
-        return {
-            accessToken: refreshedTokens.accessToken,
-            refreshToken: refreshedTokens.refreshToken,
-            idToken: refreshedTokens.idToken,
-        };
+    if (err) {
+        throw new Error('Token refresh failed');
     }
 
-    return null;
+    const { accessToken, refreshToken } = refreshedTokens;
+    setTokens(accessToken, refreshToken, tokens.idToken);
+    return { accessToken, refreshToken, idToken: tokens.idToken };
 }
 
 export async function getUserRoles(accessToken: string) {
