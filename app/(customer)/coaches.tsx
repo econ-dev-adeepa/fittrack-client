@@ -24,6 +24,22 @@ export default function CustomerCoachesScreen(){
     const [selectedCoach, setSelectedCoach] = useState<CoachAffiliation | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
     const [requesting, setRequesting] = useState(false);
+    const [selectedDays, setSelectedDays] = useState<string[]>([]);
+    const [selectedTime, setSelectedTime] = useState('');
+    const [notes, setNotes] = useState('');
+
+    const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const TIME_SLOTS = [
+      '06:00 AM', '07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM',
+      '11:00 AM', '12:00 PM', '02:00 PM', '04:00 PM', '06:00 PM',
+    ];
+
+
+    const toggleDay = (day: string) => {
+      setSelectedDays(prev =>
+        prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+      );
+    };
 
 
     const fetchCoaches = async(id: string) => {
@@ -51,30 +67,78 @@ export default function CustomerCoachesScreen(){
     }, []);
 
 
+  //   const handleRequestPT = async () => {
+  //       if(!selectedCoach){
+  //           return;
+  //       }
+  //       try{
+  //           setRequesting(true);
+  //           await ptAPI.sendRequest({
+  //               coachId: selectedCoach.userId,
+  //               gymId: selectedCoach.gymId,
+  //           });
+  //           setModalVisible(false);
+  //           Alert.alert('Success', 'PT request sent successfully');
+
+  //       }catch(err: any){
+  //           const msg = err?.response?.data?.message || 'Failed to send PT request';
+  //           Alert.alert('Error', msg);
+  //       }finally {
+  //           setRequesting(false);
+  //       }
+  //   }
+
+
+  //   const openRequestModal = (coach: CoachAffiliation) => {
+  //   setSelectedCoach(coach);
+  //   setModalVisible(true);
+  // };
+
+
     const handleRequestPT = async () => {
-        if(!selectedCoach){
-            return;
-        }
-        try{
-            setRequesting(true);
-            await ptAPI.sendRequest({
-                coachId: selectedCoach.userId,
-                gymId: selectedCoach.gymId,
-            });
-            setModalVisible(false);
-            Alert.alert('Success', 'PT request sent successfully');
+      if (!selectedCoach) return;
+      if (selectedDays.length === 0) {
+        window.alert('Please select at least one preferred day');
+        return;
+      }
+      if (!selectedTime) {
+        window.alert('Please select a preferred time');
+        return;
+      }
+      try {
+        setRequesting(true);
+        await ptAPI.sendRequest({
+          coachId: selectedCoach.userId,
+          gymId: selectedCoach.gymId,
+          preferredDays: selectedDays.join(','),
+          preferredTime: selectedTime,
+          notes: notes,
+        });
+        setModalVisible(false);
+        setSelectedDays([]);
+        setSelectedTime('');
+        setNotes('');
+        setTimeout(() => {
+          window.alert('PT request sent! Waiting for coach to respond.');
+        }, 300);
+      } catch (err: any) {
+        const status = err?.response?.status;
+        let msg = 'Failed to send PT request.';
+        if (status === 409) msg = 'You already have a PT request with this coach.';
+        else if (err?.response?.data?.message) msg = err.response.data.message;
+        setModalVisible(false);
+        setTimeout(() => window.alert(msg), 300);
+      } finally {
+        setRequesting(false);
+      }
+    };
 
-        }catch(err: any){
-            const msg = err?.response?.data?.message || 'Failed to send PT request';
-            Alert.alert('Error', msg);
-        }finally {
-            setRequesting(false);
-        }
-    }
 
-
-    const openRequestModal = (coach: CoachAffiliation) => {
+   const openRequestModal = (coach: CoachAffiliation) => {
     setSelectedCoach(coach);
+    setSelectedDays([]);
+    setSelectedTime('');
+    setNotes('');
     setModalVisible(true);
   };
 
@@ -164,56 +228,121 @@ export default function CustomerCoachesScreen(){
       )}
 
       {/* PT Request Confirmation Modal */}
+      {/* PT Request Confirmation Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalIcon}>
-              <Text style={{ fontSize: 32 }}>🤝</Text>
-            </View>
-            <Text style={styles.modalTitle}>Request Personal Training</Text>
-            <Text style={styles.modalSubtitle}>
-              Send a personal training request to this coach?
-            </Text>
-
-            {selectedCoach && (
-              <View style={styles.coachPreview}>
-                <View style={styles.previewAvatar}>
-                  <Text style={styles.previewAvatarText}>
-                    {selectedCoach.userId.slice(0, 2).toUpperCase()}
-                  </Text>
-                </View>
-                <View>
-                  <Text style={styles.previewName}>Coach</Text>
-                  <Text style={styles.previewId}>
-                    {selectedCoach.userId.slice(0, 20)}...
-                  </Text>
-                </View>
+          <ScrollView>
+            <View style={styles.modalContent}>
+              <View style={styles.modalIcon}>
+                <Text style={{ fontSize: 32 }}>🤝</Text>
               </View>
-            )}
+              <Text style={styles.modalTitle}>Request Personal Training</Text>
 
-            <Text style={styles.modalNote}>
-              The coach will be notified and can approve or deny your request.
-            </Text>
+              {selectedCoach && (
+                <View style={styles.coachPreview}>
+                  <View style={styles.previewAvatar}>
+                    <Text style={styles.previewAvatarText}>
+                      {selectedCoach.userId.slice(0, 2).toUpperCase()}
+                    </Text>
+                  </View>
+                  <View>
+                    <Text style={styles.previewName}>Coach</Text>
+                    <Text style={styles.previewId}>
+                      {selectedCoach.userId.slice(0, 20)}...
+                    </Text>
+                  </View>
+                </View>
+              )}
 
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                style={styles.cancelButton}
-                onPress={() => setModalVisible(false)}
+              {/* Day Selection */}
+              <Text style={styles.sectionLabel}>Preferred Days *</Text>
+              <View style={styles.daysContainer}>
+                {DAYS.map((day) => (
+                  <TouchableOpacity
+                    key={day}
+                    style={[
+                      styles.dayPill,
+                      selectedDays.includes(day) && styles.dayPillSelected,
+                    ]}
+                    onPress={() => toggleDay(day)}
+                  >
+                    <Text style={[
+                      styles.dayPillText,
+                      selectedDays.includes(day) && styles.dayPillTextSelected,
+                    ]}>
+                      {day}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              {/* Time Selection */}
+              <Text style={styles.sectionLabel}>Preferred Time *</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.timeScroll}
               >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.confirmButton}
-                onPress={handleRequestPT}
-                disabled={requesting}
-              >
-                {requesting
-                  ? <ActivityIndicator color="#fff" />
-                  : <Text style={styles.confirmButtonText}>Send Request</Text>
-                }
-              </TouchableOpacity>
+                {TIME_SLOTS.map((time) => (
+                  <TouchableOpacity
+                    key={time}
+                    style={[
+                      styles.timePill,
+                      selectedTime === time && styles.timePillSelected,
+                    ]}
+                    onPress={() => setSelectedTime(time)}
+                  >
+                    <Text style={[
+                      styles.timePillText,
+                      selectedTime === time && styles.timePillTextSelected,
+                    ]}>
+                      {time}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
+              {/* Notes */}
+              <Text style={styles.sectionLabel}>Notes (Optional)</Text>
+              <TextInput
+                style={styles.notesInput}
+                placeholder="Any specific requirements..."
+                value={notes}
+                onChangeText={setNotes}
+                multiline
+                numberOfLines={2}
+                placeholderTextColor="#94A3B8"
+              />
+
+              <Text style={styles.modalNote}>
+                The coach will be notified and can approve or deny your request.
+              </Text>
+
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => {
+                    setModalVisible(false);
+                    setSelectedDays([]);
+                    setSelectedTime('');
+                    setNotes('');
+                  }}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.confirmButton}
+                  onPress={handleRequestPT}
+                  disabled={requesting}
+                >
+                  {requesting
+                    ? <ActivityIndicator color="#fff" />
+                    : <Text style={styles.confirmButtonText}>Send Request</Text>
+                  }
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
+          </ScrollView>
         </View>
       </Modal>
     </View>
@@ -323,4 +452,38 @@ const styles = StyleSheet.create({
     backgroundColor: '#2563EB', alignItems: 'center',
   },
   confirmButtonText: { color: '#FFFFFF', fontWeight: '600' },
+
+  sectionLabel: {
+  fontSize: 13, fontWeight: '600', color: '#374151',
+  alignSelf: 'flex-start', marginBottom: 8, marginTop: 12,
+},
+  daysContainer: {
+    flexDirection: 'row', flexWrap: 'wrap', gap: 8, width: '100%',
+  },
+  dayPill: {
+    paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20,
+    borderWidth: 1, borderColor: '#E2E8F0', backgroundColor: '#F8FAFC',
+  },
+  dayPillSelected: {
+    backgroundColor: '#2563EB', borderColor: '#2563EB',
+  },
+  dayPillText: { fontSize: 13, fontWeight: '500', color: '#64748B' },
+  dayPillTextSelected: { color: '#FFFFFF' },
+  timeScroll: { width: '100%', marginBottom: 4 },
+  timePill: {
+    paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20,
+    borderWidth: 1, borderColor: '#E2E8F0', backgroundColor: '#F8FAFC',
+    marginRight: 8,
+  },
+  timePillSelected: {
+    backgroundColor: '#2563EB', borderColor: '#2563EB',
+  },
+  timePillText: { fontSize: 13, fontWeight: '500', color: '#64748B' },
+  timePillTextSelected: { color: '#FFFFFF' },
+  notesInput: {
+    width: '100%', borderWidth: 1, borderColor: '#E2E8F0',
+    borderRadius: 8, paddingHorizontal: 12, paddingVertical: 8,
+    fontSize: 14, color: '#1E293B', backgroundColor: '#F8FAFC',
+    height: 60, textAlignVertical: 'top',
+  },
 });
