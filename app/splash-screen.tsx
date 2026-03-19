@@ -9,6 +9,8 @@ export default function SplashScreen() {
             router.replace('/(coach)/programs');
         } else if (roles.includes('customer')) {
             router.replace('/(customer)/coaches');
+        } else if (roles.includes('gym-admin')) {
+            router.replace('/(admin)/affiliations');
         } else {
             router.replace('/login');
         }
