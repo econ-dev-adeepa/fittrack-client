@@ -13,7 +13,7 @@ export default function LoginLayout() {
 
   const [request, response, promptAsync] = useAuthRequest(
     {
-      clientId: "fittrack-client",
+      clientId: process.env.EXPO_PUBLIC_KEYCLOAK_CLIENT_ID,
       redirectUri,
       scopes: ["openid", "profile", "email"],
       extraParams: {

@@ -9,6 +9,7 @@ interface KeycloakJwtPayload extends JwtPayload {
   user_role: string;
 }
 
+
 export async function loadCredentials() {
     const accessToken = (await SecureStore.getItemAsync('accessToken')) || undefined;
     const refreshToken = (await SecureStore.getItemAsync('refreshToken')) || undefined;
@@ -51,7 +52,7 @@ export async function refreshAccessToken(refreshToken: string) {
     }
 
     const [errRefresh, refreshedTokens] = await awaitable(refreshAsync({
-        clientId: 'fittrack-client',
+        clientId: process.env.EXPO_PUBLIC_KEYCLOAK_CLIENT_ID!,
         refreshToken: refreshToken
     }, discovery));
 
@@ -87,7 +88,7 @@ export async function logout() {
     try {
         if (keycloakBaseUrl && idToken) {
             const endSessionUrl = new URL(`${keycloakBaseUrl}/protocol/openid-connect/logout`);
-            endSessionUrl.searchParams.set('client_id', 'fittrack-client');
+            endSessionUrl.searchParams.set('client_id', process.env.EXPO_PUBLIC_KEYCLOAK_CLIENT_ID!);
             endSessionUrl.searchParams.set('id_token_hint', idToken);
             endSessionUrl.searchParams.set('post_logout_redirect_uri', redirectUri);
 
@@ -97,7 +98,7 @@ export async function logout() {
         if (keycloakBaseUrl && refreshToken) {
             const logoutEndpoint = `${keycloakBaseUrl}/protocol/openid-connect/logout`;
             const body = new URLSearchParams({
-                client_id: 'fittrack-client',
+                client_id: process.env.EXPO_PUBLIC_KEYCLOAK_CLIENT_ID!,
                 refresh_token: refreshToken,
             });
 

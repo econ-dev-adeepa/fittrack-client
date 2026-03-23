@@ -31,7 +31,7 @@ export default function LoginRedirect() {
   const exchangeCodeForToken = async (code: string) => {
     const tokenResult = await exchangeCodeAsync(
       {
-        clientId: "fittrack-client",
+        clientId: process.env.EXPO_PUBLIC_KEYCLOAK_CLIENT_ID!,
         code: code,
         redirectUri: redirectUri,
         extraParams: {
