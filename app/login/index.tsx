@@ -8,6 +8,9 @@ WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
   const { promptAsync } = useContext(AuthContext)!;
+  const handleAuth = () => {
+    promptAsync()
+  };
 
   return (
     <View style={styles.container}>
@@ -22,16 +25,14 @@ export default function LoginScreen() {
       <View style={styles.actions}>
         <TouchableOpacity
           style={styles.button}
-          onPress={() => { 
-            promptAsync()
-          }}
+          onPress={handleAuth}
         >
           <Text style={styles.buttonText}>Sign In</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={styles.button}
-          onPress={() => {}}
+          onPress={handleAuth}
         >
           <Text style={styles.buttonText}>Sign Up</Text>
         </TouchableOpacity>
