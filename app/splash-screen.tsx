@@ -5,11 +5,11 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 export default function SplashScreen() {
     const redirectByRole = (role: string) => {
-        if (role === 'Coach') {
+        if (role === 'coach') {
             router.replace('/(coach)/programs');
-        } else if (role === 'Customer') {
+        } else if (role === 'customer') {
             router.replace('/(customer)/coaches');
-        } else if (role === 'Gym Admin') {
+        } else if (role === 'gym_admin') {
             router.replace('/(admin)/affiliations');
         } else {
             router.replace('/login');
