@@ -102,6 +102,12 @@ export default function AdminLayout() {
         }}
       />
       <Tabs.Screen
+        name="settings/register-gym"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="logout"
         options={{
           title: 'Logout',
