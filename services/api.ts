@@ -74,4 +74,12 @@ export const affiliationsAPI = {
     api.patch(`/affiliations/${id}/status`, { status }),
 };
 
+
+export const gymsAPI = {
+  getAll: () => api.get('/gyms'),
+  enroll: (gymId: string) =>
+    api.post('/affiliations', { gymId, type: 'CUSTOMER' }),
+  getMyGyms: () => api.get('/affiliations/my'),
+};
+
 export default api;

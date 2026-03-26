@@ -18,6 +18,18 @@ export default function CustomerLayout() {
         headerTitleStyle: { fontWeight: '700' },
       }}
     >
+      {/* Step 1 — Find & enroll in gyms */}
+      <Tabs.Screen
+        name="gyms"
+        options={{
+          title: 'Gyms',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="business-outline" size={size} color={color} />
+          ),
+        }}
+      />
+
+      {/* Step 2 — Browse coaches in gym */}
       <Tabs.Screen
         name="coaches"
         options={{
@@ -27,6 +39,8 @@ export default function CustomerLayout() {
           ),
         }}
       />
+
+      {/* Step 3 — Track PT training */}
       <Tabs.Screen
         name="pt-status"
         options={{
@@ -36,6 +50,7 @@ export default function CustomerLayout() {
           ),
         }}
       />
+
       <Tabs.Screen
         name="logout"
         options={{
