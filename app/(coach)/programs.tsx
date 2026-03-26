@@ -113,12 +113,6 @@ export default function CoachProgramsScreen() {
 
     return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
-          <Text style={styles.addButtonText}>+ New</Text>
-        </TouchableOpacity>
-      </View>
-
       {/* Programs List */}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.list}>
         {programs.length === 0 ? (
@@ -165,6 +159,10 @@ export default function CoachProgramsScreen() {
           })
         )}
       </ScrollView>
+
+      <TouchableOpacity style={styles.fab} onPress={() => setModalVisible(true)}>
+        <Text style={styles.fabText}>+</Text>
+      </TouchableOpacity>
 
       {/* Create Program Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
@@ -234,17 +232,24 @@ export default function CoachProgramsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: {
-    flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center',
-    paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12,
-    backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E2E8F0',
+  list: { padding: 16, paddingBottom: 96, gap: 12 },
+  fab: {
+    position: 'absolute',
+    right: 20,
+    bottom: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#2563EB',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 6,
   },
-  addButton: {
-    backgroundColor: '#2563EB', paddingHorizontal: 16,
-    paddingVertical: 8, borderRadius: 8,
-  },
-  addButtonText: { color: '#FFFFFF', fontWeight: '600', fontSize: 14 },
-  list: { padding: 16, gap: 12 },
+  fabText: { color: '#FFFFFF', fontSize: 30, lineHeight: 32, fontWeight: '400' },
   card: {
     backgroundColor: '#FFFFFF', borderRadius: 12, padding: 16,
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 },
