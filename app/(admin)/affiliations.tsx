@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, ActivityIndicator, TextInput,
+  Alert,
 } from 'react-native';
 import { affiliationsAPI } from '../../services/api';
 
@@ -29,7 +30,7 @@ export default function AdminAffiliationsScreen() {
 
   const fetchAffiliations = async (id: string) => {
     if (!id.trim()) {
-      window.alert('Please enter a Gym ID');
+      Alert.alert('Please enter a Gym ID');
       return;
     }
     try {
@@ -38,25 +39,49 @@ export default function AdminAffiliationsScreen() {
       setAffiliations(res.data);
       setSearchedGymId(id.trim());
     } catch (err) {
-      window.alert('Failed to load affiliations');
+      Alert.alert('Failed to load affiliations');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleUpdateStatus = async (id: string, status: 'APPROVED' | 'REJECTED') => {
+   const handleUpdateStatus = async (id: string, status: 'APPROVED' | 'REJECTED') => {
     const action = status === 'APPROVED' ? 'approve' : 'reject';
-    const confirmed = window.confirm(`Are you sure you want to ${action} this request?`);
-    if (!confirmed) return;
-
-    try {
-      await affiliationsAPI.updateStatus(id, status);
-      fetchAffiliations(searchedGymId);
-      window.alert(`Request ${action}d successfully!`);
-    } catch (err) {
-      window.alert(`Failed to ${action} request`);
-    }
+    Alert.alert(
+      'Confirm Action',
+      `Are you sure you want to ${action} this request?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: action.charAt(0).toUpperCase() + action.slice(1),
+          style: status === 'REJECTED' ? 'destructive' : 'default',
+          onPress: async () => {
+            try {
+              await affiliationsAPI.updateStatus(id, status);
+              fetchAffiliations(searchedGymId);
+              Alert.alert('Success', `Request ${action}d successfully!`);
+            } catch (err) {
+              Alert.alert('Error', `Failed to ${action} request`);
+            }
+          }
+        }
+      ]
+    );
   };
+
+  // const handleUpdateStatus = async (id: string, status: 'APPROVED' | 'REJECTED') => {
+  //   const action = status === 'APPROVED' ? 'approve' : 'reject';
+  //   const confirmed = window.confirm(`Are you sure you want to ${action} this request?`);
+  //   if (!confirmed) return;
+
+  //   try {
+  //     await affiliationsAPI.updateStatus(id, status);
+  //     fetchAffiliations(searchedGymId);
+  //     window.alert(`Request ${action}d successfully!`);
+  //   } catch (err) {
+  //     window.alert(`Failed to ${action} request`);
+  //   }
+  // };
 
   const filtered = affiliations.filter(a => a.type === activeTab);
 

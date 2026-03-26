@@ -72,36 +72,36 @@ export default function CoachProgramsScreen() {
 
     }
 
-    // const handleSubmitForApproval = async(id: string) => {
-    //     Alert.alert('Submit Program', 'Submit this program for admin approval?', [
-    //         {text: 'Cancel', style: 'cancel'},
-    //         {
-    //             text: 'Submit', onPress: async() => {
-    //                 try{
-    //                     await programsAPI.submitForApproval(id);
-    //                     fetchPrograms();
+    const handleSubmitForApproval = async(id: string) => {
+        Alert.alert('Submit Program', 'Submit this program for admin approval?', [
+            {text: 'Cancel', style: 'cancel'},
+            {
+                text: 'Submit', onPress: async() => {
+                    try{
+                        await programsAPI.submitForApproval(id);
+                        fetchPrograms();
 
-    //                 }catch(err){
-    //                     Alert.alert('Error', 'Failed to submit for approval');
-    //                 }
-    //             }
-    //         }
-    //     ])
-    // };
-
-
-    const handleSubmitForApproval = async (id: string) => {
-      const confirmed = window.confirm('Submit this program for admin approval?');
-      if (!confirmed) return;
-
-      try {
-        await programsAPI.submitForApproval(id);
-        fetchPrograms();
-        window.alert('Program submitted for approval successfully!');
-      } catch (err) {
-        window.alert('Failed to submit program for approval');
-      }
+                    }catch(err){
+                        Alert.alert('Error', 'Failed to submit for approval');
+                    }
+                }
+            }
+        ])
     };
+
+
+    // const handleSubmitForApproval = async (id: string) => {
+    //   const confirmed = window.confirm('Submit this program for admin approval?');
+    //   if (!confirmed) return;
+
+    //   try {
+    //     await programsAPI.submitForApproval(id);
+    //     fetchPrograms();
+    //     window.alert('Program submitted for approval successfully!');
+    //   } catch (err) {
+    //     window.alert('Failed to submit program for approval');
+    //   }
+    // };
 
     if(loading) {
         return (

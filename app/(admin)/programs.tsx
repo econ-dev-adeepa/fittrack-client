@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, ActivityIndicator, TextInput,
+  Alert,
 } from 'react-native';
 import { programsAPI } from '../../services/api';
 
@@ -24,7 +25,7 @@ export default function AdminProgramsScreen() {
 
   const fetchPrograms = async (id: string) => {
     if (!id.trim()) {
-      window.alert('Please enter a Gym ID');
+      Alert.alert('Please enter a Gym ID');
       return;
     }
     try {
@@ -33,7 +34,7 @@ export default function AdminProgramsScreen() {
       setPrograms(res.data);
       setSearchedGymId(id.trim());
     } catch (err) {
-      window.alert('Failed to load programs');
+      Alert.alert('Failed to load programs');
     } finally {
       setLoading(false);
     }
@@ -41,16 +42,26 @@ export default function AdminProgramsScreen() {
 
   const handleUpdateStatus = async (id: string, status: 'APPROVED' | 'REJECTED') => {
     const action = status === 'APPROVED' ? 'approve' : 'reject';
-    const confirmed = window.confirm(`Are you sure you want to ${action} this program?`);
-    if (!confirmed) return;
-
-    try {
-      await programsAPI.updateStatus(id, status);
-      fetchPrograms(searchedGymId);
-      window.alert(`Program ${action}d successfully!`);
-    } catch (err) {
-      window.alert(`Failed to ${action} program`);
-    }
+    Alert.alert(
+      'Confirm Action',
+      `Are you sure you want to ${action} this program?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: action.charAt(0).toUpperCase() + action.slice(1),
+          style: status === 'REJECTED' ? 'destructive' : 'default',
+          onPress: async () => {
+            try {
+              await programsAPI.updateStatus(id, status);
+              fetchPrograms(searchedGymId);
+              Alert.alert('Success', `Program ${action}d successfully!`);
+            } catch (err) {
+              Alert.alert('Error', `Failed to ${action} program`);
+            }
+          }
+        }
+      ]
+    );
   };
 
   return (

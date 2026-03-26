@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, ActivityIndicator, TextInput,
+  Alert,
 } from 'react-native';
 import { ptAPI } from '../../services/api';
 
@@ -22,7 +23,7 @@ export default function AdminPTRequestsScreen() {
 
   const fetchRequests = async (id: string) => {
     if (!id.trim()) {
-      window.alert('Please enter a Gym ID');
+      Alert.alert('Please enter a Gym ID');
       return;
     }
     try {
@@ -31,7 +32,7 @@ export default function AdminPTRequestsScreen() {
       setRequests(res.data);
       setSearchedGymId(id.trim());
     } catch (err) {
-      window.alert('Failed to load PT requests');
+      Alert.alert('Failed to load PT requests');
     } finally {
       setLoading(false);
     }
@@ -39,16 +40,26 @@ export default function AdminPTRequestsScreen() {
 
   const handleUpdateStatus = async (id: string, status: 'ACTIVE' | 'DENIED') => {
     const action = status === 'ACTIVE' ? 'activate' : 'deny';
-    const confirmed = window.confirm(`Are you sure you want to ${action} this PT request?`);
-    if (!confirmed) return;
-
-    try {
-      await ptAPI.updateStatusByAdmin(id, status);
-      fetchRequests(searchedGymId);
-      window.alert(`PT request ${action}d successfully!`);
-    } catch (err) {
-      window.alert(`Failed to ${action} PT request`);
-    }
+    Alert.alert(
+      'Confirm Action',
+      `Are you sure you want to ${action} this PT request?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: action.charAt(0).toUpperCase() + action.slice(1),
+          style: status === 'DENIED' ? 'destructive' : 'default',
+          onPress: async () => {
+            try {
+              await ptAPI.updateStatusByAdmin(id, status);
+              fetchRequests(searchedGymId);
+              Alert.alert('Success', `PT request ${action}d successfully!`);
+            } catch (err) {
+              Alert.alert('Error', `Failed to ${action} PT request`);
+            }
+          }
+        }
+      ]
+    );
   };
 
   return (
