@@ -92,20 +92,10 @@ export default function CustomerPTStatusScreen() {
     }
 
 
-    const activeRequest = requests.find(r => r.status === 'ACTIVE');
-    const pendingCount = requests.filter(r => r.status === 'REQUESTED').length;
 
 
     return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Training</Text>
-        <Text style={styles.headerSubtitle}>
-          {pendingCount > 0 ? `${pendingCount} pending request${pendingCount > 1 ? 's' : ''}` : 'Track your PT status'}
-        </Text>
-      </View>
-
       {/* Active Trainer Banner */}
       {trainer && (
         <View style={styles.trainerBanner}>
@@ -266,12 +256,6 @@ export default function CustomerPTStatusScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: {
-    paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16,
-    backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E2E8F0',
-  },
-  headerTitle: { fontSize: 22, fontWeight: '700', color: '#1E293B' },
-  headerSubtitle: { fontSize: 13, color: '#64748B', marginTop: 2 },
   trainerBanner: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     backgroundColor: '#1E293B', paddingHorizontal: 20, paddingVertical: 14,

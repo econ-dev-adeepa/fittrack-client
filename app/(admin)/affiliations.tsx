@@ -87,11 +87,6 @@ export default function AdminAffiliationsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Affiliations</Text>
-        <Text style={styles.headerSubtitle}>Manage coach & customer requests</Text>
-      </View>
-
       <View style={styles.searchSection}>
         <TextInput
           style={styles.searchInput}
@@ -200,12 +195,6 @@ export default function AdminAffiliationsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: {
-    paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16,
-    backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E2E8F0',
-  },
-  headerTitle: { fontSize: 22, fontWeight: '700', color: '#1E293B' },
-  headerSubtitle: { fontSize: 13, color: '#64748B', marginTop: 2 },
   searchSection: {
     flexDirection: 'row', padding: 16, gap: 10,
     backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E2E8F0',

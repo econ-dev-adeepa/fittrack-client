@@ -104,25 +104,8 @@ export default function CustomerGymsScreen() {
     gym.location.toLowerCase().includes(search.toLowerCase())
   );
 
-  const enrolledCount = Object.values(enrollStatus).filter(s => s === 'pending').length;
-
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Find a Gym</Text>
-          <Text style={styles.headerSubtitle}>
-            {enrolledCount > 0
-              ? `${enrolledCount} enrollment request${enrolledCount > 1 ? 's' : ''} pending`
-              : 'Enroll in multiple gyms'}
-          </Text>
-        </View>
-        <View style={styles.gymCountBadge}>
-          <Text style={styles.gymCountText}>{DUMMY_GYMS.length}</Text>
-          <Text style={styles.gymCountLabel}>Gyms</Text>
-        </View>
-      </View>
-
       <View style={styles.searchSection}>
         <View style={styles.searchBox}>
           <Text style={styles.searchIcon}>🔍</Text>
@@ -239,19 +222,6 @@ export default function CustomerGymsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
-  header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16,
-    backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E2E8F0',
-  },
-  headerTitle: { fontSize: 22, fontWeight: '700', color: '#1E293B' },
-  headerSubtitle: { fontSize: 13, color: '#64748B', marginTop: 2 },
-  gymCountBadge: {
-    backgroundColor: '#EFF6FF', borderRadius: 12,
-    paddingHorizontal: 14, paddingVertical: 8, alignItems: 'center',
-  },
-  gymCountText: { fontSize: 20, fontWeight: '800', color: '#2563EB' },
-  gymCountLabel: { fontSize: 11, color: '#64748B', fontWeight: '500' },
   searchSection: {
     padding: 16, backgroundColor: '#FFFFFF',
     borderBottomWidth: 1, borderBottomColor: '#E2E8F0',
