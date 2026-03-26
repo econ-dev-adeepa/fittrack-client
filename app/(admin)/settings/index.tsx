@@ -29,7 +29,7 @@ export default function AdminSettings() {
           <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.item} onPress={() => {}}>
+        <TouchableOpacity style={styles.item} onPress={() => router.push('/(admin)/settings/register-gym')}>
           <Ionicons name="add-circle-outline" size={24} color="#1E293B" />
           <Text style={styles.itemText}>Register a New Gym</Text>
           <Ionicons name="chevron-forward" size={20} color="#94A3B8" />
