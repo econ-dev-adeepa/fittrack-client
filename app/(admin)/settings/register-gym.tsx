@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { gymsAPI } from '../../../services/api';
+import awaitable from '../../../lib/awaitable';
 
 export default function RegisterGymScreen() {
   const router = useRouter();
@@ -10,11 +12,30 @@ export default function RegisterGymScreen() {
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [phone, setPhone] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleRegister = () => {
-    // TODO: Wire up actual API call
-    console.log({ name, location, description, phone });
-    router.back();
+  const handleRegister = async () => {
+    if (!name || !location || !phone) {
+      Alert.alert('Error', 'Please enter a name, location and phone number');
+      return;
+    }
+
+    setLoading(true);
+    const [err, _] = await awaitable(gymsAPI.create({ name, location, description, phone }));
+    setLoading(false);
+
+    if (err) {
+      console.error('Failed to create gym:', err);
+      Alert.alert('Error', 'Failed to register the gym');
+      setLoading(false);
+      return;
+    }
+
+    Alert.alert('Success', 'Gym registered successfully');
+    setName('');
+    setLocation('');
+    setDescription('');
+    setPhone('');
   };
 
   return (
@@ -95,8 +116,12 @@ export default function RegisterGymScreen() {
             />
           </View>
 
-          <TouchableOpacity style={styles.button} onPress={handleRegister}>
-            <Text style={styles.buttonText}>Register Gym</Text>
+          <TouchableOpacity 
+            style={[styles.button, loading && styles.buttonDisabled]} 
+            onPress={handleRegister}
+            disabled={loading}
+          >
+            <Text style={styles.buttonText}>{loading ? 'Registering...' : 'Register Gym'}</Text>
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -127,6 +152,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 10,
+  },
+  buttonDisabled: {
+    backgroundColor: '#93C5FD',
   },
   buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
 });
