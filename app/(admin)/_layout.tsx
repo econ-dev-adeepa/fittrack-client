@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { StyleSheet, Text, View } from 'react-native';
 
 export default function AdminLayout() {
   return (
@@ -13,7 +14,7 @@ export default function AdminLayout() {
           height: 60,
           paddingBottom: 8,
         },
-        headerStyle: { backgroundColor: '#FFFFFF' },
+        headerStyle: { backgroundColor: '#FFFFFF', height: 120 },
         headerTintColor: '#1E293B',
         headerTitleStyle: { fontWeight: '700' },
       }}
@@ -22,6 +23,12 @@ export default function AdminLayout() {
         name="affiliations"
         options={{
           title: 'Affiliations',
+          headerTitle: () => (
+            <View>
+              <Text style={styles.headerTitle}>Affiliations</Text>
+              <Text style={styles.headerSubtitle}>Manage coach & customer requests</Text>
+            </View>
+          ),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people-outline" size={size} color={color} />
           ),
@@ -31,6 +38,12 @@ export default function AdminLayout() {
         name="programs"
         options={{
           title: 'Programs',
+          headerTitle: () => (
+            <View>
+              <Text style={styles.headerTitle}>Programs</Text>
+              <Text style={styles.headerSubtitle}>Review & approve coach programs</Text>
+            </View>
+          ),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="barbell-outline" size={size} color={color} />
           ),
@@ -40,6 +53,12 @@ export default function AdminLayout() {
         name="pt-requests"
         options={{
           title: 'PT Requests',
+          headerTitle: () => (
+            <View>
+              <Text style={styles.headerTitle}>PT Requests</Text>
+              <Text style={styles.headerSubtitle}>Final approval for personal training</Text>
+            </View>
+          ),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="fitness-outline" size={size} color={color} />
           ),
@@ -57,3 +76,8 @@ export default function AdminLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  headerTitle: { fontSize: 22, fontWeight: '700', color: '#1E293B' },
+  headerSubtitle: { fontSize: 13, color: '#64748B', marginTop: 2 },
+});
