@@ -1,5 +1,6 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { StyleSheet, Text, View } from 'react-native';
 
 
 export default function CoachLayout() {
@@ -14,7 +15,7 @@ export default function CoachLayout() {
           height: 60,
           paddingBottom: 8,
         },
-        headerStyle: { backgroundColor: '#FFFFFF' },
+        headerStyle: { backgroundColor: '#FFFFFF', height: 120 },
         headerTintColor: '#1E293B',
         headerTitleStyle: { fontWeight: '700' },
       }}
@@ -23,6 +24,12 @@ export default function CoachLayout() {
         name="programs"
         options={{
           title: 'Programs',
+          headerTitle: () => (
+            <View>
+              <Text style={styles.headerTitle}>My Programs</Text>
+              <Text style={styles.headerSubtitle}>Create and manage your programs</Text>
+            </View>
+          ),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="barbell-outline" size={size} color={color} />
           ),
@@ -32,6 +39,12 @@ export default function CoachLayout() {
         name="pt-requests"
         options={{
           title: 'PT Requests',
+          headerTitle: () => (
+            <View>
+              <Text style={styles.headerTitle}>PT Management</Text>
+              <Text style={styles.headerSubtitle}>Manage requests and active clients</Text>
+            </View>
+          ),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people-outline" size={size} color={color} />
           ),
@@ -49,3 +62,8 @@ export default function CoachLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  headerTitle: { fontSize: 22, fontWeight: '700', color: '#1E293B' },
+  headerSubtitle: { fontSize: 13, color: '#64748B', marginTop: 2 },
+});

@@ -113,12 +113,7 @@ export default function CoachProgramsScreen() {
 
     return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>My Programs</Text>
-          <Text style={styles.headerSubtitle}>{programs.length} programs total</Text>
-        </View>
         <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
           <Text style={styles.addButtonText}>+ New</Text>
         </TouchableOpacity>
@@ -240,12 +235,10 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   header: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16,
+    flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center',
+    paddingHorizontal: 20, paddingTop: 12, paddingBottom: 12,
     backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E2E8F0',
   },
-  headerTitle: { fontSize: 22, fontWeight: '700', color: '#1E293B' },
-  headerSubtitle: { fontSize: 13, color: '#64748B', marginTop: 2 },
   addButton: {
     backgroundColor: '#2563EB', paddingHorizontal: 16,
     paddingVertical: 8, borderRadius: 8,

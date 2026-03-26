@@ -110,14 +110,6 @@ export default function CoachPTRequestsScreen() {
 
     return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>PT Management</Text>
-        <Text style={styles.headerSubtitle}>
-          {requests.filter(r => r.status === 'REQUESTED').length} pending requests
-        </Text>
-      </View>
-
       {/* Tabs */}
       <View style={styles.tabs}>
         <TouchableOpacity
@@ -277,12 +269,6 @@ export default function CoachPTRequestsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  header: {
-    paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16,
-    backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E2E8F0',
-  },
-  headerTitle: { fontSize: 22, fontWeight: '700', color: '#1E293B' },
-  headerSubtitle: { fontSize: 13, color: '#64748B', marginTop: 2 },
   tabs: {
     flexDirection: 'row', backgroundColor: '#FFFFFF',
     borderBottomWidth: 1, borderBottomColor: '#E2E8F0',
