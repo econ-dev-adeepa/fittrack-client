@@ -77,6 +77,7 @@ export const affiliationsAPI = {
 
 export const gymsAPI = {
   getAll: () => api.get('/gyms'),
+  getAdminGyms: () => api.get('/gyms?is_admin=true'),
   create: (data: { name: string; location: string; description?: string; phone?: string }) =>
     api.post('/gyms', data),
   enroll: (gymId: string) =>
