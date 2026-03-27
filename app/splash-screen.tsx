@@ -16,6 +16,12 @@ export default function SplashScreen() {
         }
     }
 
+
+    // useEffect(() => {
+    // // Temporary bypass — go straight to customer screens
+    // setTimeout(() => router.replace('/(customer)/gyms'), 500);
+    // }, []);
+
     useEffect(() => {
         let isActive = true;
 
