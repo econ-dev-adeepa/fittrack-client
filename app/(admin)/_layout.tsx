@@ -1,6 +1,18 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+function Menu() {
+  const router = useRouter();
+  return (
+    <TouchableOpacity 
+      style={{ marginRight: 16, justifyContent: 'center', alignItems: 'center', height: 120 }}
+      onPress={() => router.push('/(admin)/settings')}
+    >
+      <Ionicons name="menu-outline" size={24} color="#1E293B" />
+    </TouchableOpacity>
+  );
+}
 
 export default function AdminLayout() {
   return (
@@ -17,6 +29,7 @@ export default function AdminLayout() {
         headerStyle: { backgroundColor: '#FFFFFF', height: 120 },
         headerTintColor: '#1E293B',
         headerTitleStyle: { fontWeight: '700' },
+        headerRight: () => <Menu />,
       }}
     >
       <Tabs.Screen
@@ -62,6 +75,36 @@ export default function AdminLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="fitness-outline" size={size} color={color} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings/index"
+        options={{
+          title: 'Settings',
+          href: null,
+          headerRight: () => {
+            const router = useRouter();
+            return (
+              <TouchableOpacity 
+                style={{ marginRight: 16, justifyContent: 'center', alignItems: 'center', height: 120 }}
+                onPress={() => router.back()}
+              >
+                <Ionicons name="close-outline" size={32} color="#1E293B" />
+              </TouchableOpacity>
+            );
+          },
+          headerTitle: () => (
+            <View>
+              <Text style={styles.headerTitle}>Settings</Text>
+              <Text style={styles.headerSubtitle}>Manage Gym Details</Text>
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings/register-gym"
+        options={{
+          href: null,
         }}
       />
       <Tabs.Screen
