@@ -37,21 +37,6 @@ export function AdminLayout() {
       }}
     >
       <Tabs.Screen
-        name="affiliations"
-        options={{
-          title: 'Affiliations',
-          headerTitle: () => (
-            <View>
-              <Text style={styles.headerTitle}>Affiliations</Text>
-              <Text style={styles.headerSubtitle}>Manage coach & customer requests</Text>
-            </View>
-          ),
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="programs"
         options={{
           title: 'Programs',
