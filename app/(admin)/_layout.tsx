@@ -111,6 +111,58 @@ export function AdminLayout() {
           href: null,
         }}
       />
+      <Tabs.Screen
+        name="customers"
+        options={{
+          title: 'Customers',
+          href: null,
+          headerTitle: () => (
+            <View>
+              <Text style={styles.headerTitle}>Customers</Text>
+              <Text style={styles.headerSubtitle}>Manage active customers</Text>
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="coaches"
+        options={{
+          title: 'Coaches',
+          href: null,
+          headerTitle: () => (
+            <View>
+              <Text style={styles.headerTitle}>Coaches</Text>
+              <Text style={styles.headerSubtitle}>Manage active coaches</Text>
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="customers-pending"
+        options={{
+          title: 'Pending Customers',
+          href: null,
+          headerTitle: () => (
+            <View>
+              <Text style={styles.headerTitle}>Pending Customers</Text>
+              <Text style={styles.headerSubtitle}>Review customer join requests</Text>
+            </View>
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="coaches-pending"
+        options={{
+          title: 'Pending Coaches',
+          href: null,
+          headerTitle: () => (
+            <View>
+              <Text style={styles.headerTitle}>Pending Coaches</Text>
+              <Text style={styles.headerSubtitle}>Review coach join requests</Text>
+            </View>
+          ),
+        }}
+      />
     </Tabs>
   );
 }
