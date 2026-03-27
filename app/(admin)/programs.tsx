@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, ActivityIndicator, TextInput,
   Alert,
 } from 'react-native';
 import { programsAPI } from '../../services/api';
+import useGymStore from '../../stores/useGymStore';
 
 interface Program {
   id: string;
@@ -20,25 +21,26 @@ interface Program {
 export default function AdminProgramsScreen() {
   const [programs, setPrograms] = useState<Program[]>([]);
   const [loading, setLoading] = useState(false);
-  const [gymId, setGymId] = useState('');
   const [searchedGymId, setSearchedGymId] = useState('');
+  const selectedGym = useGymStore((state) => state.selectedGym);
 
-  const fetchPrograms = async (id: string) => {
-    if (!id.trim()) {
-      Alert.alert('Please enter a Gym ID');
-      return;
+  const fetchPrograms = async (gymId: string) => {
+    setLoading(true);
+
+    programsAPI.getPendingByGym(gymId)
+      .then((res) => {
+        setPrograms(res.data);
+        setSearchedGymId(gymId);
+      })
+      .catch(() => Alert.alert('Failed to load programs'))
+      .finally(() => setLoading(false));
+  }
+
+  useEffect(() => {
+    if (selectedGym) {
+      fetchPrograms(selectedGym.id);
     }
-    try {
-      setLoading(true);
-      const res = await programsAPI.getPendingByGym(id.trim());
-      setPrograms(res.data);
-      setSearchedGymId(id.trim());
-    } catch (err) {
-      Alert.alert('Failed to load programs');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [selectedGym]);
 
   const handleUpdateStatus = async (id: string, status: 'APPROVED' | 'REJECTED') => {
     const action = status === 'APPROVED' ? 'approve' : 'reject';
@@ -53,7 +55,7 @@ export default function AdminProgramsScreen() {
           onPress: async () => {
             try {
               await programsAPI.updateStatus(id, status);
-              fetchPrograms(searchedGymId);
+              await fetchPrograms(selectedGym!.id);
               Alert.alert('Success', `Program ${action}d successfully!`);
             } catch (err) {
               Alert.alert('Error', `Failed to ${action} program`);
@@ -66,22 +68,6 @@ export default function AdminProgramsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchSection}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Enter Gym ID..."
-          value={gymId}
-          onChangeText={setGymId}
-          placeholderTextColor="#94A3B8"
-        />
-        <TouchableOpacity
-          style={styles.searchButton}
-          onPress={() => fetchPrograms(gymId)}
-        >
-          <Text style={styles.searchButtonText}>Search</Text>
-        </TouchableOpacity>
-      </View>
-
       {loading ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color="#2563EB" />

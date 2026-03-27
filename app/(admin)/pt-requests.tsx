@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, ActivityIndicator, TextInput,
   Alert,
 } from 'react-native';
 import { ptAPI } from '../../services/api';
+import useGymStore from '../../stores/useGymStore';
 
 interface PTRequest {
   id: string;
@@ -18,25 +19,25 @@ interface PTRequest {
 export default function AdminPTRequestsScreen() {
   const [requests, setRequests] = useState<PTRequest[]>([]);
   const [loading, setLoading] = useState(false);
-  const [gymId, setGymId] = useState('');
-  const [searchedGymId, setSearchedGymId] = useState('');
+  const selectedGym = useGymStore((state) => state.selectedGym);
 
   const fetchRequests = async (id: string) => {
-    if (!id.trim()) {
-      Alert.alert('Please enter a Gym ID');
-      return;
-    }
     try {
       setLoading(true);
-      const res = await ptAPI.getCoachApprovedByGym(id.trim());
+      const res = await ptAPI.getCoachApprovedByGym(id);
       setRequests(res.data);
-      setSearchedGymId(id.trim());
     } catch (err) {
       Alert.alert('Failed to load PT requests');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (selectedGym) {
+      fetchRequests(selectedGym.id);
+    }
+  }, [selectedGym]);
 
   const handleUpdateStatus = async (id: string, status: 'ACTIVE' | 'DENIED') => {
     const action = status === 'ACTIVE' ? 'activate' : 'deny';
@@ -51,7 +52,7 @@ export default function AdminPTRequestsScreen() {
           onPress: async () => {
             try {
               await ptAPI.updateStatusByAdmin(id, status);
-              fetchRequests(searchedGymId);
+              await fetchRequests(selectedGym!.id);
               Alert.alert('Success', `PT request ${action}d successfully!`);
             } catch (err) {
               Alert.alert('Error', `Failed to ${action} PT request`);
@@ -64,22 +65,6 @@ export default function AdminPTRequestsScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.searchSection}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Enter Gym ID..."
-          value={gymId}
-          onChangeText={setGymId}
-          placeholderTextColor="#94A3B8"
-        />
-        <TouchableOpacity
-          style={styles.searchButton}
-          onPress={() => fetchRequests(gymId)}
-        >
-          <Text style={styles.searchButtonText}>Search</Text>
-        </TouchableOpacity>
-      </View>
-
       {loading ? (
         <View style={styles.centered}>
           <ActivityIndicator size="large" color="#2563EB" />
@@ -90,9 +75,6 @@ export default function AdminPTRequestsScreen() {
             <View style={styles.emptyState}>
               <Text style={styles.emptyIcon}>🤝</Text>
               <Text style={styles.emptyTitle}>No coach-approved requests</Text>
-              <Text style={styles.emptySubtitle}>
-                {searchedGymId ? 'No PT requests awaiting your approval' : 'Enter a gym ID to search'}
-              </Text>
             </View>
           ) : (
             requests.map((req) => (
