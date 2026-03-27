@@ -10,7 +10,7 @@ export default function SplashScreen() {
         } else if (role === 'customer') {
             router.replace('/(customer)/coaches');
         } else if (role === 'gym_admin') {
-            router.replace('/(admin)/affiliations');
+            router.replace('/(admin)/my-gym');
         } else {
             router.replace('/login');
         }
