@@ -1,6 +1,12 @@
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { router, useRouter } from 'expo-router';
+import { logout } from '../../../lib/authenticate';
+
+async function logoutAndRedirect() {
+  await logout();
+  router.replace('/login');
+};
 
 export default function AdminSettings() {
   const router = useRouter();
@@ -39,7 +45,7 @@ export default function AdminSettings() {
       <View style={styles.section}>
         <TouchableOpacity 
           style={[styles.item, { borderBottomWidth: 0 }]} 
-          onPress={() => router.replace('/(admin)/logout')}
+          onPress={logoutAndRedirect}
         >
           <Ionicons name="log-out-outline" size={24} color="#EF4444" />
           <Text style={[styles.itemText, { color: '#EF4444' }]}>Log Out</Text>
