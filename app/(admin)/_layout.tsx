@@ -1,6 +1,10 @@
 import { Tabs, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import useGymStore from '../../stores/useGymStore';
+import awaitable from '../../lib/awaitable';
+import { gymsAPI } from '../../services/api';
+import { useEffect } from 'react';
 
 function Menu() {
   const router = useRouter();
@@ -14,7 +18,7 @@ function Menu() {
   );
 }
 
-export default function AdminLayout() {
+export function AdminLayout() {
   return (
     <Tabs
       screenOptions={{
@@ -120,7 +124,59 @@ export default function AdminLayout() {
   );
 }
 
+function LoadingScreen() {
+  return (
+    <View style={styles.loadingContainer}>
+      <ActivityIndicator size="large" color="#2563EB" />
+      <Text style={styles.loadingText}>Loading gym data...</Text>
+    </View>
+  );
+}
+
+async function fetchGyms() {
+  const [err, res] = await awaitable(gymsAPI.getAdminGyms());
+  if (err) {
+    throw new Error('Failed to fetch gyms');
+  }
+
+  return res.data;
+}
+
+export default function AdminLayoutWrapper() {
+  const gyms = useGymStore((state) => state.gyms);
+  const selectedGym = useGymStore((state) => state.selectedGym);
+
+  useEffect(() => {
+    if (gyms === undefined) {
+      fetchGyms().then((fetchedGyms) => {
+        useGymStore.setState({ gyms: fetchedGyms });
+        if (fetchedGyms.length > 0) {
+          const defaultGym = fetchedGyms[0];
+          useGymStore.setState({ selectedGym: defaultGym });
+        }
+      })
+    }
+  }, [gyms]);
+
+  if (gyms === undefined || selectedGym === null) {
+    return <LoadingScreen />;
+  }
+
+  return <AdminLayout />;
+}
+
 const styles = StyleSheet.create({
   headerTitle: { fontSize: 22, fontWeight: '700', color: '#1E293B' },
   headerSubtitle: { fontSize: 13, color: '#64748B', marginTop: 2 },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FFFFFF',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#64748B',
+  },
 });
