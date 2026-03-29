@@ -2,7 +2,6 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, View } from 'react-native';
 
-
 export default function CoachLayout() {
   return (
     <Tabs
@@ -20,6 +19,16 @@ export default function CoachLayout() {
         headerTitleStyle: { fontWeight: '700' },
       }}
     >
+      {/* Gyms — first tab so coach can join gyms first */}
+      <Tabs.Screen
+        name="gyms"
+        options={{
+          title: 'Gyms',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="business-outline" size={size} color={color} />
+          ),
+        }}
+      />
       <Tabs.Screen
         name="programs"
         options={{

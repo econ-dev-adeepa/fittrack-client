@@ -23,44 +23,6 @@ interface MyAffiliation {
   type: string;
 }
 
-// const DUMMY_GYMS: Gym[] = [
-//   {
-//     id: 'test-gym-123',
-//     name: 'FitTrack Colombo',
-//     location: 'Colombo 03',
-//     description: 'Premium fitness center in the heart of Colombo',
-//     phone: '0112345678',
-//     memberCount: 120,
-//     coachCount: 8,
-//   },
-//   {
-//     id: 'test-gym-456',
-//     name: 'FitTrack Kandy',
-//     location: 'Kandy City Center',
-//     description: 'State of the art gym facilities in Kandy',
-//     phone: '0812345678',
-//     memberCount: 85,
-//     coachCount: 5,
-//   },
-//   {
-//     id: 'test-gym-789',
-//     name: 'FitTrack Galle',
-//     location: 'Galle Fort Road',
-//     description: 'Modern gym with stunning sea view',
-//     phone: '0912345678',
-//     memberCount: 60,
-//     coachCount: 4,
-//   },
-//   {
-//     id: 'test-gym-101',
-//     name: 'FitTrack Negombo',
-//     location: 'Negombo Beach Road',
-//     description: 'Beachside fitness center with outdoor training',
-//     phone: '0312345678',
-//     memberCount: 45,
-//     coachCount: 3,
-//   },
-// ];
 
 const STATUS_CONFIG = {
   PENDING: { label: 'Awaiting Approval', bg: '#FEF9C3', text: '#CA8A04', border: '#FDE68A' },
@@ -70,7 +32,7 @@ const STATUS_CONFIG = {
 
 type TabType = 'available' | 'mygyms';
 
-export default function CustomerGymsScreen() {
+export default function CoachGymsScreen() {
   const [myAffiliations, setMyAffiliations] = useState<MyAffiliation[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -109,10 +71,10 @@ export default function CustomerGymsScreen() {
   const fetchMyAffiliations = async () => {
     try {
       const res = await affiliationsAPI.getMyAffiliations();
-      const customerAffiliations = res.data.filter(
-        (a: MyAffiliation) => a.type === 'CUSTOMER'
+      const coachAffiliations = res.data.filter(
+        (a: MyAffiliation) => a.type === 'COACH'
       );
-      setMyAffiliations(customerAffiliations);
+      setMyAffiliations(coachAffiliations);
     } catch (err) {
       console.log('Failed to load affiliations');
     }
@@ -147,7 +109,7 @@ export default function CustomerGymsScreen() {
           onPress: async () => {
             setEnrollingId(gym.id);
             try {
-              await gymsAPI.enroll(gym.id);
+              await gymsAPI.enrollAsCoach(gym.id);
               await fetchMyAffiliations();
               Alert.alert('Request Sent! ✅', `Enrollment request sent to ${gym.name}!\n\nWaiting for gym admin approval.`);
             } catch (err: any) {
