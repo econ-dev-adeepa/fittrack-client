@@ -87,6 +87,8 @@ export const gymsAPI = {
     api.post('/gyms', data),
   enroll: (gymId: string) =>
     api.post('/affiliations', { gymId, type: 'CUSTOMER' }),
+  enrollAsCoach: (gymId: string) => 
+    api.post('/affiliations', { gymId, type: 'COACH' }),
   getMyGyms: () => api.get('/affiliations/my'),
 };
 
