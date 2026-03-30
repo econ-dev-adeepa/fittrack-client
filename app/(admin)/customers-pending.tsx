@@ -15,6 +15,7 @@ interface PendingCustomer {
 export default function AdminCustomersPendingScreen() {
   const [customers, setCustomers] = useState<PendingCustomer[]>([]);
   const [loading, setLoading] = useState(false);
+  const [processingId, setProcessingId] = useState<string | null>(null);
   const selectedGym = useGymStore((state) => state.selectedGym);
 
   const fetchPendingCustomers = async (gymId: string) => {
@@ -35,8 +36,38 @@ export default function AdminCustomersPendingScreen() {
     }
   }, [selectedGym]);
 
-  const onAccept = () => {};
-  const onReject = () => {};
+  const handleUpdateStatus = (customer: PendingCustomer, status: 'APPROVED' | 'REJECTED') => {
+    if (!selectedGym) {
+      Alert.alert('Error', 'No gym selected');
+      return;
+    }
+
+    const action = status === 'APPROVED' ? 'approve' : 'reject';
+
+    Alert.alert(
+      'Confirm Action',
+      `Are you sure you want to ${action} this customer request?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: action.charAt(0).toUpperCase() + action.slice(1),
+          style: status === 'REJECTED' ? 'destructive' : 'default',
+          onPress: async () => {
+            try {
+              setProcessingId(customer.id);
+              await affiliationsAPI.updateStatus(customer.id, status);
+              await fetchPendingCustomers(selectedGym.id);
+              Alert.alert('Success', `Customer request ${action}d successfully`);
+            } catch (err) {
+              Alert.alert('Error', `Failed to ${action} customer request`);
+            } finally {
+              setProcessingId(null);
+            }
+          },
+        },
+      ],
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -63,11 +94,27 @@ export default function AdminCustomersPendingScreen() {
                   </Text>
 
                   <View style={styles.actions}>
-                    <TouchableOpacity style={styles.rejectButton} onPress={onReject}>
-                      <Text style={styles.rejectButtonText}>Reject</Text>
+                    <TouchableOpacity
+                      style={styles.rejectButton}
+                      onPress={() => handleUpdateStatus(customer, 'REJECTED')}
+                      disabled={processingId === customer.id}
+                    >
+                      {processingId === customer.id ? (
+                        <ActivityIndicator size="small" color="#DC2626" />
+                      ) : (
+                        <Text style={styles.rejectButtonText}>Reject</Text>
+                      )}
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.acceptButton} onPress={onAccept}>
-                      <Text style={styles.acceptButtonText}>Accept</Text>
+                    <TouchableOpacity
+                      style={styles.acceptButton}
+                      onPress={() => handleUpdateStatus(customer, 'APPROVED')}
+                      disabled={processingId === customer.id}
+                    >
+                      {processingId === customer.id ? (
+                        <ActivityIndicator size="small" color="#FFFFFF" />
+                      ) : (
+                        <Text style={styles.acceptButtonText}>Accept</Text>
+                      )}
                     </TouchableOpacity>
                   </View>
                 </View>
