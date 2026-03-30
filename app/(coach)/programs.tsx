@@ -4,6 +4,7 @@ import {
   StyleSheet, Alert, ActivityIndicator, Modal,
 } from 'react-native';
 import { programsAPI, affiliationsAPI } from '../../services/api';
+import { router } from 'expo-router';
 
 interface Program {
   id: string;
@@ -243,9 +244,19 @@ export default function CoachProgramsScreen() {
                 )}
 
                 <View style={styles.cardFooter}>
-                  <Text style={styles.cardDate}>
-                    {new Date(program.createdAt).toLocaleDateString()}
-                  </Text>
+                <Text style={styles.cardDate}>
+                  {new Date(program.createdAt).toLocaleDateString()}
+                </Text>
+                <View style={styles.cardActions}>
+                  <TouchableOpacity
+                    style={styles.managePlansButton}
+                    onPress={() => router.push({
+                      pathname: '/(coach)/training-plans',
+                      params: { programId: program.id, programTitle: program.title }
+                    })}
+                  >
+                    <Text style={styles.managePlansButtonText}>📋 Plans</Text>
+                  </TouchableOpacity>
                   {program.status === 'DRAFT' && (
                     <TouchableOpacity
                       style={styles.submitButton}
@@ -255,6 +266,7 @@ export default function CoachProgramsScreen() {
                     </TouchableOpacity>
                   )}
                 </View>
+              </View>
               </View>
             );
           })
@@ -603,4 +615,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#2563EB', alignItems: 'center',
   },
   createButtonText: { color: '#FFFFFF', fontWeight: '600' },
+  cardActions: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+  managePlansButton: {
+    backgroundColor: '#F1F5F9', paddingHorizontal: 10,
+    paddingVertical: 6, borderRadius: 6,
+  },
+  managePlansButtonText: { color: '#475569', fontSize: 12, fontWeight: '600' },
 });
