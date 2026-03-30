@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, ScrollView, ActivityIndicator, Alert } from 'react-native';
-import { affiliationsAPI } from '../../services/api';
+import { affiliationsAPI, usersAPI } from '../../services/api';
 import useGymStore from '../../stores/useGymStore';
 
 interface PendingCustomer {
@@ -10,19 +10,50 @@ interface PendingCustomer {
   type: string;
   status: string;
   createdAt: string;
+  userName?: string;
 }
 
 export default function AdminCustomersPendingScreen() {
   const [customers, setCustomers] = useState<PendingCustomer[]>([]);
   const [loading, setLoading] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [userCache, setUserCache] = useState<{ [key: string]: string }>({});
   const selectedGym = useGymStore((state) => state.selectedGym);
+
+  const fetchUserDetails = async (userIds: string[]) => {
+    const uncachedIds = userIds.filter(id => !userCache[id]);
+    
+    if (uncachedIds.length === 0) return;
+
+    try {
+      const userDataPromises = uncachedIds.map(id => 
+        usersAPI.getUserById(id)
+          .then(res => ({ id, username: res.data.username }))
+          .catch(() => ({ id, username: 'Unknown' }))
+      );
+      
+      const results = await Promise.all(userDataPromises);
+      const newCache = { ...userCache };
+      
+      results.forEach(({ id, username }) => {
+        newCache[id] = username;
+      });
+      
+      setUserCache(newCache);
+    } catch (err) {
+      console.error('Failed to fetch user details:', err);
+    }
+  };
 
   const fetchPendingCustomers = async (gymId: string) => {
     try {
       setLoading(true);
       const res = await affiliationsAPI.getPendingCustomersByGym(gymId);
       setCustomers(res.data);
+      
+      // Fetch user details for all pending customers
+      const userIds = res.data.map((c: PendingCustomer) => c.userId);
+      await fetchUserDetails(userIds);
     } catch (err) {
       Alert.alert('Error', 'Failed to load pending customers');
     } finally {
@@ -87,8 +118,7 @@ export default function AdminCustomersPendingScreen() {
             <View style={styles.list}>
               {customers.map((customer) => (
                 <View key={customer.id} style={styles.card}>
-                  <Text style={styles.name}>Customer {customer.userId.slice(0, 8)}</Text>
-                  <Text style={styles.meta}>Request ID: {customer.id}</Text>
+                  <Text style={styles.name}>{userCache[customer.userId] || 'Loading...'}</Text>
                   <Text style={styles.meta}>
                     Requested: {new Date(customer.createdAt).toLocaleDateString()}
                   </Text>

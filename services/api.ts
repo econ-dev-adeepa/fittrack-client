@@ -87,4 +87,10 @@ export const gymsAPI = {
   getMyGyms: () => api.get('/affiliations/my'),
 };
 
+// Users API
+export const usersAPI = {
+  getUserById: (userId: string) =>
+    api.get(`/users/${userId}`),
+};
+
 export default api;
