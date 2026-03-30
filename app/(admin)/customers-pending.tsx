@@ -1,64 +1,82 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { affiliationsAPI } from '../../services/api';
+import useGymStore from '../../stores/useGymStore';
 
 interface PendingCustomer {
   id: string;
-  name: string;
-  email: string;
-  requestedAt: string;
+  userId: string;
+  gymId: string;
+  type: string;
+  status: string;
+  createdAt: string;
 }
 
-const PENDING_CUSTOMERS: PendingCustomer[] = [
-  {
-    id: 'PC-301',
-    name: 'Ishara Fernando',
-    email: 'ishara.fernando@example.com',
-    requestedAt: '2026-03-21',
-  },
-  {
-    id: 'PC-302',
-    name: 'Malith Perera',
-    email: 'malith.perera@example.com',
-    requestedAt: '2026-03-23',
-  },
-  {
-    id: 'PC-303',
-    name: 'Piumi Jayasinghe',
-    email: 'piumi.jayasinghe@example.com',
-    requestedAt: '2026-03-25',
-  },
-];
-
 export default function AdminCustomersPendingScreen() {
+  const [customers, setCustomers] = useState<PendingCustomer[]>([]);
+  const [loading, setLoading] = useState(false);
+  const selectedGym = useGymStore((state) => state.selectedGym);
+
+  const fetchPendingCustomers = async (gymId: string) => {
+    try {
+      setLoading(true);
+      const res = await affiliationsAPI.getPendingCustomersByGym(gymId);
+      setCustomers(res.data);
+    } catch (err) {
+      Alert.alert('Error', 'Failed to load pending customers');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedGym) {
+      fetchPendingCustomers(selectedGym.id);
+    }
+  }, [selectedGym]);
+
   const onAccept = () => {};
   const onReject = () => {};
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.sectionTitle}>Pending Customer Requests</Text>
+    <View style={styles.container}>
+      {loading ? (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color="#2563EB" />
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={styles.content}>
+          <Text style={styles.sectionTitle}>Pending Customer Requests</Text>
 
-      <View style={styles.list}>
-        {PENDING_CUSTOMERS.map((customer) => (
-          <View key={customer.id} style={styles.card}>
-            <Text style={styles.name}>{customer.name}</Text>
-            <Text style={styles.meta}>{customer.email}</Text>
-            <Text style={styles.meta}>Request ID: {customer.id}</Text>
-            <Text style={styles.meta}>
-              Requested: {new Date(customer.requestedAt).toLocaleDateString()}
-            </Text>
-
-            <View style={styles.actions}>
-              <TouchableOpacity style={styles.rejectButton} onPress={onReject}>
-                <Text style={styles.rejectButtonText}>Reject</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.acceptButton} onPress={onAccept}>
-                <Text style={styles.acceptButtonText}>Accept</Text>
-              </TouchableOpacity>
+          {customers.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>No pending customer requests.</Text>
             </View>
-          </View>
-        ))}
-      </View>
-    </ScrollView>
+          ) : (
+            <View style={styles.list}>
+              {customers.map((customer) => (
+                <View key={customer.id} style={styles.card}>
+                  <Text style={styles.name}>Customer {customer.userId.slice(0, 8)}</Text>
+                  <Text style={styles.meta}>Request ID: {customer.id}</Text>
+                  <Text style={styles.meta}>
+                    Requested: {new Date(customer.createdAt).toLocaleDateString()}
+                  </Text>
+
+                  <View style={styles.actions}>
+                    <TouchableOpacity style={styles.rejectButton} onPress={onReject}>
+                      <Text style={styles.rejectButtonText}>Reject</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.acceptButton} onPress={onAccept}>
+                      <Text style={styles.acceptButtonText}>Accept</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
+        </ScrollView>
+      )}
+    </View>
   );
 }
 
@@ -67,9 +85,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   content: {
     padding: 16,
     paddingBottom: 24,
+  },
+  emptyState: {
+    paddingTop: 40,
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: '#64748B',
+    fontSize: 15,
   },
   sectionTitle: {
     marginBottom: 10,
