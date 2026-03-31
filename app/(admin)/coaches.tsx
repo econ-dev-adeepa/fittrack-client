@@ -1,71 +1,110 @@
+import React, { useEffect, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { affiliationsAPI, usersAPI } from '../../services/api';
+import useGymStore from '../../stores/useGymStore';
 
-interface Coach {
+interface ActiveCoach {
   id: string;
-  name: string;
-  specialty: string;
-  email: string;
-  joinedAt: string;
+  userId: string;
+  gymId: string;
+  type: string;
+  status: string;
+  createdAt: string;
 }
-
-const ACTIVE_COACHES: Coach[] = [
-  {
-    id: 'COACH-201',
-    name: 'Kasun Wijesinghe',
-    specialty: 'Strength Training',
-    email: 'kasun.wijesinghe@example.com',
-    joinedAt: '2025-12-15',
-  },
-  {
-    id: 'COACH-207',
-    name: 'Dinithi Gunawardena',
-    specialty: 'Weight Loss',
-    email: 'dinithi.gunawardena@example.com',
-    joinedAt: '2026-01-20',
-  },
-  {
-    id: 'COACH-214',
-    name: 'Sahan de Alwis',
-    specialty: 'Mobility & Rehab',
-    email: 'sahan.alwis@example.com',
-    joinedAt: '2026-02-14',
-  },
-  {
-    id: 'COACH-219',
-    name: 'Madhavi Peris',
-    specialty: 'Athletic Performance',
-    email: 'madhavi.peris@example.com',
-    joinedAt: '2026-03-03',
-  },
-];
 
 export default function AdminCoachesScreen() {
   const router = useRouter();
+  const [coaches, setCoaches] = useState<ActiveCoach[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [userCache, setUserCache] = useState<{ [key: string]: string }>({});
+  const selectedGym = useGymStore((state) => state.selectedGym);
+
+  const fetchUserDetails = async (userIds: string[]) => {
+    const uncachedIds = userIds.filter((id) => !userCache[id]);
+
+    if (uncachedIds.length === 0) {
+      return;
+    }
+
+    try {
+      const userDataPromises = uncachedIds.map((id) =>
+        usersAPI
+          .getUserById(id)
+          .then((res) => ({ id, username: res.data.username }))
+          .catch(() => ({ id, username: 'Unknown' })),
+      );
+
+      const results = await Promise.all(userDataPromises);
+      const newCache = { ...userCache };
+
+      results.forEach(({ id, username }) => {
+        newCache[id] = username;
+      });
+
+      setUserCache(newCache);
+    } catch (err) {
+      console.error('Failed to fetch user details:', err);
+    }
+  };
+
+  const fetchActiveCoaches = async (gymId: string) => {
+    try {
+      setLoading(true);
+      const res = await affiliationsAPI.getActiveCoachesByGym(gymId);
+      setCoaches(res.data);
+
+      const userIds = res.data.map((coach: ActiveCoach) => coach.userId);
+      await fetchUserDetails(userIds);
+    } catch (err) {
+      console.error('Failed to fetch active coaches:', err);
+      Alert.alert('Error', 'Failed to load active coaches');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedGym) {
+      fetchActiveCoaches(selectedGym.id);
+    }
+  }, [selectedGym]);
+
   const onPendingRequestsPress = () => router.push('/(admin)/coaches-pending');
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <TouchableOpacity style={styles.menuItem} onPress={onPendingRequestsPress}>
-        <Text style={styles.menuItemText}>View Pending Requests</Text>
-        <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
-      </TouchableOpacity>
+    <View style={styles.container}>
+      {loading ? (
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color="#2563EB" />
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={styles.content}>
+          <TouchableOpacity style={styles.menuItem} onPress={onPendingRequestsPress}>
+            <Text style={styles.menuItemText}>View Pending Requests</Text>
+            <Ionicons name="chevron-forward" size={18} color="#94A3B8" />
+          </TouchableOpacity>
 
-      <Text style={styles.sectionTitle}>Active Coaches</Text>
+          <Text style={styles.sectionTitle}>Active Coaches</Text>
 
-      <View style={styles.list}>
-        {ACTIVE_COACHES.map((coach) => (
-          <View key={coach.id} style={styles.card}>
-            <Text style={styles.name}>{coach.name}</Text>
-            <Text style={styles.meta}>Specialty: {coach.specialty}</Text>
-            <Text style={styles.meta}>{coach.email}</Text>
-            <Text style={styles.meta}>Coach ID: {coach.id}</Text>
-            <Text style={styles.meta}>Joined: {new Date(coach.joinedAt).toLocaleDateString()}</Text>
-          </View>
-        ))}
-      </View>
-    </ScrollView>
+          {coaches.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyText}>No active coaches yet.</Text>
+            </View>
+          ) : (
+            <View style={styles.list}>
+              {coaches.map((coach) => (
+                <View key={coach.id} style={styles.card}>
+                  <Text style={styles.name}>{userCache[coach.userId] || 'Loading...'}</Text>
+                  <Text style={styles.meta}>Joined: {new Date(coach.createdAt).toLocaleDateString()}</Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </ScrollView>
+      )}
+    </View>
   );
 }
 
@@ -74,9 +113,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   content: {
     padding: 16,
     paddingBottom: 24,
+  },
+  emptyState: {
+    paddingTop: 40,
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: '#64748B',
+    fontSize: 15,
   },
   menuItem: {
     width: '100%',
