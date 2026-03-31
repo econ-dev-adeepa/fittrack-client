@@ -65,7 +65,7 @@ export const ptAPI = {
 // Affiliations API
 export const affiliationsAPI = {
   getCoachesByGym: (gymId: string) =>
-    api.get(`/affiliations/gym/${gymId}/coaches`),
+    api.get(`/affiliations/gym/${gymId}/coaches/approved`),
   getActiveCoachesByGym: (gymId: string) =>
     api.get(`/affiliations/gym/${gymId}/coaches/approved`),
   getActiveCustomersByGym: (gymId: string) =>
