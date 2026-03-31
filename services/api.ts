@@ -70,6 +70,8 @@ export const affiliationsAPI = {
     api.get('/affiliations/my'),
   getPendingByGym: (gymId: string) =>
     api.get(`/affiliations/gym/${gymId}/pending`),
+  getPendingCoachesByGym: (gymId: string) =>
+    api.get(`/affiliations/gym/${gymId}/coaches/pending`),
   getPendingCustomersByGym: (gymId: string) =>
     api.get(`/affiliations/gym/${gymId}/customers/pending`),
   updateStatus: (id: string, status: string) =>
