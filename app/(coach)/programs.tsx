@@ -14,11 +14,11 @@ interface Program {
   gymId: string;
   status: 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED';
   createdAt: string;
-  sessionsPerWeek?: number;
-  sessionDuration?: number;
-  totalSlots?: number;
-  difficulty?: string;
-  programDuration?: number;
+  // sessionsPerWeek?: number;
+  // sessionDuration?: number;
+  // totalSlots?: number;
+  // difficulty?: string;
+  // programDuration?: number;
 }
 
 interface CoachGym {
@@ -55,11 +55,11 @@ export default function CoachProgramsScreen() {
     title: '',
     description: '',
     gymId: '',
-    sessionsPerWeek: 3,
-    sessionDuration: 60,
-    totalSlots: 10,
-    difficulty: 'BEGINNER',
-    programDuration: 8,
+    // sessionsPerWeek: 3,
+    // sessionDuration: 60,
+    // totalSlots: 10,
+    // difficulty: 'BEGINNER',
+    // programDuration: 8,
   });
 
   useEffect(() => {
@@ -138,11 +138,11 @@ export default function CoachProgramsScreen() {
       title: '',
       description: '',
       gymId: '',
-      sessionsPerWeek: 3,
-      sessionDuration: 60,
-      totalSlots: 10,
-      difficulty: 'BEGINNER',
-      programDuration: 8,
+      // sessionsPerWeek: 3,
+      // sessionDuration: 60,
+      // totalSlots: 10,
+      // difficulty: 'BEGINNER',
+      // programDuration: 8,
     });
     setSelectedDays([]);
     setSelectedTime('');
@@ -206,7 +206,7 @@ export default function CoachProgramsScreen() {
                 )}
 
                 {/* Training Plan Details */}
-                {(program.sessionsPerWeek || program.totalSlots || program.difficulty) && (
+                {/* {(program.sessionsPerWeek || program.totalSlots || program.difficulty) && (
                   <View style={styles.trainingPlanBox}>
                     <Text style={styles.trainingPlanTitle}>Training Plan</Text>
                     <View style={styles.trainingPlanGrid}>
@@ -241,7 +241,7 @@ export default function CoachProgramsScreen() {
                       </View>
                     )}
                   </View>
-                )}
+                )} */}
 
                 <View style={styles.cardFooter}>
                 <Text style={styles.cardDate}>
@@ -368,12 +368,12 @@ export default function CoachProgramsScreen() {
               </ScrollView>
 
               {/* ─── Training Plan Section ─── */}
-              <View style={styles.sectionDivider}>
+              {/* <View style={styles.sectionDivider}>
                 <Text style={styles.sectionDividerText}>Training Plan</Text>
-              </View>
+              </View> */}
 
               {/* Sessions per week */}
-              <Text style={styles.label}>Sessions per Week</Text>
+              {/* <Text style={styles.label}>Sessions per Week</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionScroll}>
                 {SESSIONS_OPTIONS.map((n) => (
                   <TouchableOpacity
@@ -386,10 +386,10 @@ export default function CoachProgramsScreen() {
                     </Text>
                   </TouchableOpacity>
                 ))}
-              </ScrollView>
+              </ScrollView> */}
 
               {/* Session Duration */}
-              <Text style={styles.label}>Session Duration (mins)</Text>
+              {/* <Text style={styles.label}>Session Duration (mins)</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionScroll}>
                 {DURATION_OPTIONS.map((d) => (
                   <TouchableOpacity
@@ -402,10 +402,10 @@ export default function CoachProgramsScreen() {
                     </Text>
                   </TouchableOpacity>
                 ))}
-              </ScrollView>
+              </ScrollView> */}
 
               {/* Total Slots */}
-              <Text style={styles.label}>Available Slots</Text>
+              {/* <Text style={styles.label}>Available Slots</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionScroll}>
                 {SLOTS_OPTIONS.map((s) => (
                   <TouchableOpacity
@@ -418,10 +418,10 @@ export default function CoachProgramsScreen() {
                     </Text>
                   </TouchableOpacity>
                 ))}
-              </ScrollView>
+              </ScrollView> */}
 
               {/* Program Duration */}
-              <Text style={styles.label}>Program Duration (weeks)</Text>
+              {/* <Text style={styles.label}>Program Duration (weeks)</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionScroll}>
                 {PROGRAM_WEEKS.map((w) => (
                   <TouchableOpacity
@@ -434,10 +434,10 @@ export default function CoachProgramsScreen() {
                     </Text>
                   </TouchableOpacity>
                 ))}
-              </ScrollView>
+              </ScrollView> */}
 
               {/* Difficulty */}
-              <Text style={styles.label}>Difficulty Level</Text>
+              {/* <Text style={styles.label}>Difficulty Level</Text>
               <View style={styles.difficultyContainer}>
                 {DIFFICULTY_OPTIONS.map((d) => (
                   <TouchableOpacity
@@ -462,7 +462,7 @@ export default function CoachProgramsScreen() {
                     </Text>
                   </TouchableOpacity>
                 ))}
-              </View>
+              </View> */}
 
               {/* Actions */}
               <View style={styles.modalActions}>

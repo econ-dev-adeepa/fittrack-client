@@ -72,7 +72,8 @@ export default function CoachLayout() {
       <Tabs.Screen
         name="training-plans"
         options={{
-          href: null, // hides from tab bar but keeps the route accessible
+          href: null,
+          headerShown: false, 
         }}
       />
     </Tabs>
