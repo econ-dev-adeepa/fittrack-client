@@ -71,11 +71,19 @@ export const ptAPI = {
 // Affiliations API
 export const affiliationsAPI = {
   getCoachesByGym: (gymId: string) =>
-    api.get(`/affiliations/gym/${gymId}/coaches`),
+    api.get(`/affiliations/gym/${gymId}/coaches/approved`),
+  getActiveCoachesByGym: (gymId: string) =>
+    api.get(`/affiliations/gym/${gymId}/coaches/approved`),
+  getActiveCustomersByGym: (gymId: string) =>
+    api.get(`/affiliations/gym/${gymId}/customers/approved`),
   getMyAffiliations: () =>
     api.get('/affiliations/my'),
   getPendingByGym: (gymId: string) =>
-  api.get(`/affiliations/gym/${gymId}/pending`),
+    api.get(`/affiliations/gym/${gymId}/pending`),
+  getPendingCoachesByGym: (gymId: string) =>
+    api.get(`/affiliations/gym/${gymId}/coaches/pending`),
+  getPendingCustomersByGym: (gymId: string) =>
+    api.get(`/affiliations/gym/${gymId}/customers/pending`),
   updateStatus: (id: string, status: string) =>
     api.patch(`/affiliations/${id}/status`, { status }),
 };
@@ -92,7 +100,6 @@ export const gymsAPI = {
     api.post('/affiliations', { gymId, type: 'COACH' }),
   getMyGyms: () => api.get('/affiliations/my'),
 };
-
 
 //Training Plans API
 export const trainingPlansAPI = {
@@ -112,6 +119,12 @@ export const trainingPlansAPI = {
 
   remove: (id: string) =>
     api.delete(`/training-plans/${id}`),
+};
+
+// Users API
+export const usersAPI = {
+  getUserById: (userId: string) =>
+    api.get(`/users/${userId}`),
 };
 
 export default api;

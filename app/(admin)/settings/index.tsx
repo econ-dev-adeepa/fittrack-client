@@ -27,7 +27,7 @@ export default function AdminSettings() {
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Gym Management</Text>
         
-        <TouchableOpacity style={styles.item} onPress={() => {}}>
+        <TouchableOpacity style={styles.item} onPress={() => router.push('/(admin)/settings/switch-gym')}>
           <Ionicons name="business-outline" size={24} color="#1E293B" />
           <View style={{ flex: 1, marginLeft: 16 }}>
             <Text style={{ fontSize: 16, color: '#1E293B' }}>Switch Active Gym</Text>

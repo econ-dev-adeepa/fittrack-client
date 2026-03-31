@@ -1,12 +1,14 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import useGymStore from '../../stores/useGymStore';
 
 export default function AdminMyGymScreen() {
+  const router = useRouter();
   const selectedGym = useGymStore((state) => state.selectedGym);
 
-  const onCustomersPress = () => {};
-  const onCoachesPress = () => {};
+  const onCustomersPress = () => router.push('/(admin)/customers');
+  const onCoachesPress = () => router.push('/(admin)/coaches');
 
   if (!selectedGym) {
     return (
