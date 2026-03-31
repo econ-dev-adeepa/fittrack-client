@@ -68,6 +68,14 @@ export default function CoachLayout() {
           ),
         }}
       />
+
+      <Tabs.Screen
+        name="training-plans"
+        options={{
+          href: null,
+          headerShown: false, 
+        }}
+      />
     </Tabs>
   );
 }

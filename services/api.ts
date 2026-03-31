@@ -93,4 +93,25 @@ export const gymsAPI = {
   getMyGyms: () => api.get('/affiliations/my'),
 };
 
+
+//Training Plans API
+export const trainingPlansAPI = {
+  create: (data: {
+    programId: string;
+    name: string;
+    description?: string;
+    sessionsPerWeek?: number;
+    sessionDuration?: number;
+    totalSlots?: number;
+    difficulty?: string;
+    programDuration?: number;
+  }) => api.post('/training-plans', data),
+
+  getByProgram: (programId: string) =>
+    api.get(`/training-plans/program/${programId}`),
+
+  remove: (id: string) =>
+    api.delete(`/training-plans/${id}`),
+};
+
 export default api;
