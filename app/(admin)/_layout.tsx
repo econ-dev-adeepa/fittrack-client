@@ -112,6 +112,12 @@ export function AdminLayout() {
         }}
       />
       <Tabs.Screen
+        name="settings/switch-gym"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="customers"
         options={{
           title: 'Customers',
