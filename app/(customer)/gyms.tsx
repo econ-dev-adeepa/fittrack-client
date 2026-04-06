@@ -23,45 +23,6 @@ interface MyAffiliation {
   type: string;
 }
 
-// const DUMMY_GYMS: Gym[] = [
-//   {
-//     id: 'test-gym-123',
-//     name: 'FitTrack Colombo',
-//     location: 'Colombo 03',
-//     description: 'Premium fitness center in the heart of Colombo',
-//     phone: '0112345678',
-//     memberCount: 120,
-//     coachCount: 8,
-//   },
-//   {
-//     id: 'test-gym-456',
-//     name: 'FitTrack Kandy',
-//     location: 'Kandy City Center',
-//     description: 'State of the art gym facilities in Kandy',
-//     phone: '0812345678',
-//     memberCount: 85,
-//     coachCount: 5,
-//   },
-//   {
-//     id: 'test-gym-789',
-//     name: 'FitTrack Galle',
-//     location: 'Galle Fort Road',
-//     description: 'Modern gym with stunning sea view',
-//     phone: '0912345678',
-//     memberCount: 60,
-//     coachCount: 4,
-//   },
-//   {
-//     id: 'test-gym-101',
-//     name: 'FitTrack Negombo',
-//     location: 'Negombo Beach Road',
-//     description: 'Beachside fitness center with outdoor training',
-//     phone: '0312345678',
-//     memberCount: 45,
-//     coachCount: 3,
-//   },
-// ];
-
 const STATUS_CONFIG = {
   PENDING: { label: 'Awaiting Approval', bg: '#FEF9C3', text: '#CA8A04', border: '#FDE68A' },
   APPROVED: { label: '✓ Enrolled', bg: '#DCFCE7', text: '#16A34A', border: '#86EFAC' },
