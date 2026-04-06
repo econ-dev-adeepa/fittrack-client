@@ -86,6 +86,8 @@ export const affiliationsAPI = {
     api.get(`/affiliations/gym/${gymId}/customers/pending`),
   updateStatus: (id: string, status: string) =>
     api.patch(`/affiliations/${id}/status`, { status }),
+  remove: (id: string) => 
+    api.delete(`/affiliations/${id}`),
 };
 
 
