@@ -131,24 +131,84 @@ export default function CoachGymsScreen() {
     );
   };
 
+
+
   const handleUnenroll = (affiliation: MyAffiliation) => {
-    const gym = gyms.find(g => g.id === affiliation.gymId);
-    Alert.alert(
-      'Unenroll from Gym',
-      `Are you sure you want to unenroll from ${gym?.name || affiliation.gymId}?\n\nThis will remove your membership request.`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Unenroll',
-          style: 'destructive',
-          onPress: () => {
-            // TODO: implement unenroll API call
-            Alert.alert('Coming Soon', 'Unenroll functionality will be available soon.');
-          }
+  const gym = gyms.find(g => g.id === affiliation.gymId);
+  const gymName = gym?.name || affiliation.gymId;
+  const isRejected = affiliation.status === 'REJECTED';
+  const isPending = affiliation.status === 'PENDING';
+
+  const title = isRejected ? 'Remove Gym' : isPending ? 'Cancel Request' : 'Unenroll from Gym';
+  const message = isRejected
+    ? `Remove ${gymName} from your list?`
+    : isPending
+    ? `Cancel your enrollment request for ${gymName}?`
+    : `Are you sure you want to unenroll from ${gymName}?`;
+  const buttonText = isRejected ? 'Remove' : isPending ? 'Cancel Request' : 'Unenroll';
+
+  Alert.alert(title, message, [
+    { text: 'Keep', style: 'cancel' },
+    {
+      text: buttonText,
+      style: 'destructive',
+      onPress: async () => {
+        try {
+          await affiliationsAPI.remove(affiliation.id);
+          await fetchMyAffiliations();
+          Alert.alert('Done', isRejected
+            ? `${gymName} removed.`
+            : isPending
+            ? `Request cancelled for ${gymName}.`
+            : `You have unenrolled from ${gymName}.`
+          );
+        } catch (err: any) {
+          const status = err?.response?.status;
+          let msg = 'Failed to remove gym.';
+          if (status === 403) msg = 'You do not have permission to do this.';
+          Alert.alert('Error', msg);
         }
-      ]
-    );
-  };
+      }
+    }
+  ]);
+};
+
+//   const handleUnenroll = (affiliation: MyAffiliation) => {
+//   const gym = gyms.find(g => g.id === affiliation.gymId);
+//   const gymName = gym?.name || affiliation.gymId;
+//   const isRejected = affiliation.status === 'REJECTED';
+
+//   Alert.alert(
+//     isRejected ? 'Remove Gym' : 'Unenroll from Gym',
+//     isRejected
+//       ? `Remove ${gymName} from your list?`
+//       : `Are you sure you want to unenroll from ${gymName}?\n\nThis will remove your membership.`,
+//     [
+//       { text: 'Cancel', style: 'cancel' },
+//       {
+//         text: isRejected ? 'Remove' : 'Unenroll',
+//         style: 'destructive',
+//         onPress: async () => {
+//           try {
+//             await affiliationsAPI.remove(affiliation.id);
+//             await fetchMyAffiliations();
+//             Alert.alert(
+//               'Done',
+//               isRejected
+//                 ? `${gymName} removed from your list.`
+//                 : `You have unenrolled from ${gymName}.`
+//             );
+//           } catch (err: any) {
+//             const status = err?.response?.status;
+//             let msg = 'Failed to remove gym.';
+//             if (status === 403) msg = 'You do not have permission to do this.';
+//             Alert.alert('Error', msg);
+//           }
+//         }
+//       }
+//     ]
+//   );
+// };
 
   const filteredGyms = gyms.filter(gym =>
     gym.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -389,11 +449,25 @@ export default function CoachGymsScreen() {
 
                   {/* Unenroll Button */}
                   <TouchableOpacity
-                    style={styles.unenrollButton}
+                    style={[
+                      styles.unenrollButton,
+                      affiliation.status === 'REJECTED' && styles.removeButton,
+                      affiliation.status === 'PENDING' && styles.cancelButton,
+                    ]}
                     onPress={() => handleUnenroll(affiliation)}
                     activeOpacity={0.8}
                   >
-                    <Text style={styles.unenrollButtonText}>Unenroll</Text>
+                    <Text style={[
+                      styles.unenrollButtonText,
+                      affiliation.status === 'REJECTED' && styles.removeButtonText,
+                      affiliation.status === 'PENDING' && styles.cancelButtonText,
+                    ]}>
+                      {affiliation.status === 'REJECTED'
+                        ? '🗑 Remove'
+                        : affiliation.status === 'PENDING'
+                        ? '✕ Cancel Request'
+                        : 'Unenroll'}
+                    </Text>
                   </TouchableOpacity>
                 </View>
               );
@@ -509,4 +583,17 @@ const styles = StyleSheet.create({
   emptyIcon: { fontSize: 48, marginBottom: 12 },
   emptyTitle: { fontSize: 18, fontWeight: '600', color: '#1E293B', marginBottom: 4 },
   emptySubtitle: { fontSize: 14, color: '#64748B', textAlign: 'center', paddingHorizontal: 32 },
+  
+  removeButton: {
+  borderRadius: 10, paddingVertical: 12,
+  alignItems: 'center', marginHorizontal: 16, marginBottom: 16,
+  borderWidth: 1.5, borderColor: '#E2E8F0', backgroundColor: '#F8FAFC',
+  },
+  removeButtonText: { color: '#94A3B8', fontWeight: '600', fontSize: 14 },
+  cancelButton: {
+    borderRadius: 10, paddingVertical: 12,
+    alignItems: 'center', marginHorizontal: 16, marginBottom: 16,
+    borderWidth: 1.5, borderColor: '#FDE68A', backgroundColor: '#FFFBEB',
+  },
+  cancelButtonText: { color: '#CA8A04', fontWeight: '600', fontSize: 14 },
 });
