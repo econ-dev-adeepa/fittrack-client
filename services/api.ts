@@ -34,7 +34,7 @@ setupTokenRefreshInterceptor(api);
 
 // Programs API
 export const programsAPI = {
-  create: (data: { title: string; description?: string; gymId: string; schedule?: string }) =>
+  create: (data: { title: string; description?: string; gymId: string; schedule?: string; totalSlots?: number }) =>
     api.post('/programs', data),
   submitForApproval: (id: string) =>
     api.patch(`/programs/${id}/submit`),
@@ -46,6 +46,17 @@ export const programsAPI = {
   api.get(`/programs/gym/${gymId}/pending`),
   updateStatus: (id: string, status: string) =>
     api.patch(`/programs/${id}/status`, { status }),
+  checkConflicts: (id: string) =>
+    api.get(`/programs/${id}/conflicts`),
+  rejectWithProposal: (id: string, data : {
+    rejectionReason: string;
+    proposedDays: string;
+    proposedTime: string;
+    proposedSlots: number;
+  }) => api.patch (`/programs/${id}/reject-with-proposal`, data),
+
+  respondToProposal: (id: string, accept: boolean ) => 
+    api.patch(`/programs/${id}/respond-to-proposal`, { accept }),
 };
 
 // PT Relationships API
@@ -94,8 +105,16 @@ export const affiliationsAPI = {
 export const gymsAPI = {
   getAll: () => api.get('/gyms'),
   getAdminGyms: () => api.get('/gyms?is_admin=true'),
-  create: (data: { name: string; location: string; description?: string; phone?: string }) =>
-    api.post('/gyms', data),
+  create: (data: { 
+    name: string; 
+    location: string; 
+    description?: string; 
+    phone?: string;
+    operationalDays?: string;
+    openTime?: string;
+    closeTime?: string;
+    capacity?: number 
+  }) => api.post('/gyms', data),
   enroll: (gymId: string) =>
     api.post('/affiliations', { gymId, type: 'CUSTOMER' }),
   enrollAsCoach: (gymId: string) => 
