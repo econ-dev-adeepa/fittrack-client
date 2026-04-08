@@ -3,7 +3,7 @@ import {
   View, Text, ScrollView, TouchableOpacity, TextInput,
   StyleSheet, Alert, ActivityIndicator, Modal,
 } from 'react-native';
-import { programsAPI, affiliationsAPI } from '../../services/api';
+import { programsAPI, affiliationsAPI, gymsAPI } from '../../services/api';
 import { router } from 'expo-router';
 
 interface Program {
@@ -12,19 +12,21 @@ interface Program {
   description?: string;
   schedule?: string;
   gymId: string;
-  status: 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED';
+  totalSlots?: number;
+  status: 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'REJECTED_WITH_PROPOSAL' | 'PROPOSAL_ACCEPTED' | 'PROPOSAL_REJECTED';
   createdAt: string;
-  // sessionsPerWeek?: number;
-  // sessionDuration?: number;
-  // totalSlots?: number;
-  // difficulty?: string;
-  // programDuration?: number;
+  rejectionReason?: string;
+  proposedDays?: string;
+  proposedTime?: string;
+  proposedSlots?: number;
 }
 
 interface CoachGym {
   id: string;
   gymId: string;
   status: string;
+  type: string;
+  gymName?: string; 
 }
 
 const STATUS_CONFIG = {
@@ -32,16 +34,29 @@ const STATUS_CONFIG = {
   PENDING_APPROVAL: { label: 'Pending', bg: '#FEF9C3', text: '#CA8A04' },
   APPROVED: { label: 'Approved', bg: '#DCFCE7', text: '#16A34A' },
   REJECTED: { label: 'Rejected', bg: '#FEE2E2', text: '#DC2626' },
+  REJECTED_WITH_PROPOSAL: { label: '💡 Proposal Received', bg: '#FFF7ED', text: '#EA580C' },
+  PROPOSAL_ACCEPTED: { label: 'Accepted', bg: '#DCFCE7', text: '#16A34A' },
+  PROPOSAL_REJECTED: { label: 'Proposal Rejected', bg: '#FEE2E2', text: '#DC2626' },
 };
 
 const DIFFICULTY_OPTIONS = ['BEGINNER', 'INTERMEDIATE', 'ADVANCED'];
 const SESSIONS_OPTIONS = [1, 2, 3, 4, 5, 6, 7];
-const DURATION_OPTIONS = [30, 45, 60, 90, 120];
 const SLOTS_OPTIONS = [5, 10, 15, 20, 25, 30];
 const PROGRAM_WEEKS = [4, 8, 12, 16, 24];
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const TIME_SLOTS = ['06:00 AM', '07:00 AM', '08:00 AM', '09:00 AM', '10:00 AM',
   '11:00 AM', '12:00 PM', '02:00 PM', '04:00 PM', '06:00 PM'];
+const DURATION_OPTIONS = [
+  { label: '30 min', hours: 0, minutes: 30 },
+  { label: '1 hr', hours: 1, minutes: 0 },
+  { label: '1.5 hrs', hours: 1, minutes: 30 },
+  { label: '2 hrs', hours: 2, minutes: 0 },
+  { label: '2.5 hrs', hours: 2, minutes: 30 },
+  { label: '3 hrs', hours: 3, minutes: 0 },
+  { label: '3.5 hrs', hours: 3, minutes: 30 },
+  { label: '4 hrs', hours: 4, minutes: 0 },
+];
+
 
 export default function CoachProgramsScreen() {
   const [programs, setPrograms] = useState<Program[]>([]);
@@ -55,12 +70,13 @@ export default function CoachProgramsScreen() {
     title: '',
     description: '',
     gymId: '',
+    totalSlots: 10,
     // sessionsPerWeek: 3,
     // sessionDuration: 60,
-    // totalSlots: 10,
     // difficulty: 'BEGINNER',
     // programDuration: 8,
   });
+  const [selectedDuration, setSelectedDuration] = useState(60); // in minutes
 
   useEffect(() => {
     fetchPrograms();
@@ -79,17 +95,42 @@ export default function CoachProgramsScreen() {
     }
   };
 
+
   const fetchMyGyms = async () => {
-    try {
-      const res = await affiliationsAPI.getMyAffiliations();
-      const approvedGyms = res.data.filter(
-        (a: CoachGym) => a.status === 'APPROVED'
-      );
-      setMyGyms(approvedGyms);
-    } catch (err) {
-      console.log('Failed to load gyms');
-    }
-  };
+  try {
+    const [affiliationsRes, gymsRes] = await Promise.all([
+      affiliationsAPI.getMyAffiliations(),
+      gymsAPI.getAll(),
+    ]);
+
+    const approvedGyms = affiliationsRes.data.filter(
+      (a: CoachGym) => a.status === 'APPROVED' && a.type === 'COACH'
+    );
+
+    // Attach gym details to each affiliation
+    const gymsData = gymsRes.data;
+    const enriched = approvedGyms.map((a: CoachGym) => ({
+      ...a,
+      gymName: gymsData.find((g: any) => g.id === a.gymId)?.name || a.gymId,
+    }));
+
+    setMyGyms(enriched);
+  } catch (err) {
+    console.log('Failed to load gyms');
+  }
+};
+
+  // const fetchMyGyms = async () => {
+  //   try {
+  //     const res = await affiliationsAPI.getMyAffiliations();
+  //     const approvedGyms = res.data.filter(
+  //       (a: CoachGym) => a.status === 'APPROVED'
+  //     );
+  //     setMyGyms(approvedGyms);
+  //   } catch (err) {
+  //     console.log('Failed to load gyms');
+  //   }
+  // };
 
   const toggleDay = (day: string) => {
     setSelectedDays(prev =>
@@ -115,37 +156,85 @@ export default function CoachProgramsScreen() {
       return;
     }
 
-    const schedule = `${selectedDays.join('/')} ${selectedTime}`;
+    // Calculate end time from start + duration
+    const calculateEndTime = (startTime: string, durationMins: number): string => {
+      const [timePart, period] = startTime.split(' ');
+      let [hours, minutes] = timePart.split(':').map(Number);
+      if (period === 'PM' && hours !== 12) hours += 12;
+      if (period === 'AM' && hours === 12) hours = 0;
 
-    try {
-      setSubmitting(true);
-      await programsAPI.create({
-        ...form,
-        schedule,
-      });
-      setModalVisible(false);
-      resetForm();
-      fetchPrograms();
-    } catch (err) {
-      Alert.alert('Error', 'Failed to create program');
-    } finally {
-      setSubmitting(false);
-    }
+      const totalMinutes = hours * 60 + minutes + durationMins;
+      let endHours = Math.floor(totalMinutes / 60) % 24;
+      const endMinutes = totalMinutes % 60;
+      const endPeriod = endHours >= 12 ? 'PM' : 'AM';
+      if (endHours > 12) endHours -= 12;
+      if (endHours === 0) endHours = 12;
+
+      return `${endHours.toString().padStart(2, '0')}:${endMinutes.toString().padStart(2, '0')} ${endPeriod}`;
   };
+
+  const endTime = calculateEndTime(selectedTime, selectedDuration);
+  const schedule = `${selectedDays.join('/')} ${selectedTime} - ${endTime}`;
+
+  try {
+    setSubmitting(true);
+    await programsAPI.create({
+      ...form,
+      schedule,
+    });
+    setModalVisible(false);
+    resetForm();
+    fetchPrograms();
+    Alert.alert('Success ✅', 'Program created successfully!');
+  } catch (err) {
+    Alert.alert('Error', 'Failed to create program');
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   const resetForm = () => {
     setForm({
       title: '',
       description: '',
       gymId: '',
+      totalSlots: 10,
       // sessionsPerWeek: 3,
       // sessionDuration: 60,
-      // totalSlots: 10,
       // difficulty: 'BEGINNER',
       // programDuration: 8,
     });
     setSelectedDays([]);
     setSelectedTime('');
+    setSelectedDuration(60);
+  };
+
+  const handleRespondToProposal = (program: Program, accept: boolean) => {
+    Alert.alert(
+      accept ? 'Accept Proposal' : 'Reject Proposal',
+      accept
+        ? `Accept admin's proposed schedule?\n\nDays: ${program.proposedDays}\nTime: ${program.proposedTime}\nSlots: ${program.proposedSlots}\n\nYour program will be approved with the new schedule.`
+        : 'Reject the admin\'s proposal? Your program will be marked as rejected.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: accept ? 'Accept' : 'Reject',
+          style: accept ? 'default' : 'destructive',
+          onPress: async () => {
+            try {
+              await programsAPI.respondToProposal(program.id, accept);
+              fetchPrograms();
+              Alert.alert('Done', accept
+                ? 'Proposal accepted! Your program is now approved.'
+                : 'Proposal rejected.'
+              );
+            } catch (err) {
+              Alert.alert('Error', 'Failed to respond to proposal');
+            }
+          }
+        }
+      ]
+    );
   };
 
   const handleSubmitForApproval = async (id: string) => {
@@ -202,6 +291,43 @@ export default function CoachProgramsScreen() {
                   <View style={styles.scheduleRow}>
                     <Text style={styles.scheduleIcon}>🗓</Text>
                     <Text style={styles.scheduleText}>{program.schedule}</Text>
+                  </View>
+                )}
+
+                {/* Proposal Section — shown when admin rejected with proposal */}
+                {program.status === 'REJECTED_WITH_PROPOSAL' && (
+                  <View style={styles.proposalBox}>
+                    <Text style={styles.proposalTitle}>💡 Admin Proposal</Text>
+                    {program.rejectionReason && (
+                      <Text style={styles.proposalReason}>
+                        Reason: {program.rejectionReason}
+                      </Text>
+                    )}
+                    <View style={styles.proposalDetails}>
+                      {program.proposedDays && (
+                        <Text style={styles.proposalDetail}>📅 {program.proposedDays}</Text>
+                      )}
+                      {program.proposedTime && (
+                        <Text style={styles.proposalDetail}>🕐 {program.proposedTime}</Text>
+                      )}
+                      {program.proposedSlots && (
+                        <Text style={styles.proposalDetail}>👥 {program.proposedSlots} slots</Text>
+                      )}
+                    </View>
+                    <View style={styles.proposalActions}>
+                      <TouchableOpacity
+                        style={styles.rejectProposalButton}
+                        onPress={() => handleRespondToProposal(program, false)}
+                      >
+                        <Text style={styles.rejectProposalText}>✕ Decline</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.acceptProposalButton}
+                        onPress={() => handleRespondToProposal(program, true)}
+                      >
+                        <Text style={styles.acceptProposalText}>✓ Accept</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 )}
 
@@ -328,7 +454,7 @@ export default function CoachProgramsScreen() {
                         styles.gymChipText,
                         form.gymId === gym.gymId && styles.gymChipTextSelected,
                       ]}>
-                        🏋️ {gym.gymId.slice(0, 12)}...
+                        🏋️ {gym.gymName}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -367,6 +493,41 @@ export default function CoachProgramsScreen() {
                 ))}
               </ScrollView>
 
+              {/* Session Duration */}
+              <Text style={styles.label}>Session Duration</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.timeScroll}>
+                {DURATION_OPTIONS.map((d) => {
+                  const mins = d.hours * 60 + d.minutes;
+                  return (
+                    <TouchableOpacity
+                      key={mins}
+                      style={[styles.timePill, selectedDuration === mins && styles.timePillSelected]}
+                      onPress={() => setSelectedDuration(mins)}
+                    >
+                      <Text style={[styles.timePillText, selectedDuration === mins && styles.timePillTextSelected]}>
+                        {d.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+
+              {/* Total Slots */}
+              <Text style={styles.label}>Available Slots</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.timeScroll}>
+                {SLOTS_OPTIONS.map((s) => (
+                  <TouchableOpacity
+                    key={s}
+                    style={[styles.timePill, form.totalSlots === s && styles.timePillSelected]}
+                    onPress={() => setForm({ ...form, totalSlots: s })}
+                  >
+                    <Text style={[styles.timePillText, form.totalSlots === s && styles.timePillTextSelected]}>
+                      {s} slots
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+
               {/* ─── Training Plan Section ─── */}
               {/* <View style={styles.sectionDivider}>
                 <Text style={styles.sectionDividerText}>Training Plan</Text>
@@ -388,37 +549,6 @@ export default function CoachProgramsScreen() {
                 ))}
               </ScrollView> */}
 
-              {/* Session Duration */}
-              {/* <Text style={styles.label}>Session Duration (mins)</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionScroll}>
-                {DURATION_OPTIONS.map((d) => (
-                  <TouchableOpacity
-                    key={d}
-                    style={[styles.optionPill, form.sessionDuration === d && styles.optionPillSelected]}
-                    onPress={() => setForm({ ...form, sessionDuration: d })}
-                  >
-                    <Text style={[styles.optionPillText, form.sessionDuration === d && styles.optionPillTextSelected]}>
-                      {d}m
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView> */}
-
-              {/* Total Slots */}
-              {/* <Text style={styles.label}>Available Slots</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.optionScroll}>
-                {SLOTS_OPTIONS.map((s) => (
-                  <TouchableOpacity
-                    key={s}
-                    style={[styles.optionPill, form.totalSlots === s && styles.optionPillSelected]}
-                    onPress={() => setForm({ ...form, totalSlots: s })}
-                  >
-                    <Text style={[styles.optionPillText, form.totalSlots === s && styles.optionPillTextSelected]}>
-                      {s}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </ScrollView> */}
 
               {/* Program Duration */}
               {/* <Text style={styles.label}>Program Duration (weeks)</Text>
@@ -621,4 +751,25 @@ const styles = StyleSheet.create({
     paddingVertical: 6, borderRadius: 6,
   },
   managePlansButtonText: { color: '#475569', fontSize: 12, fontWeight: '600' },
+  proposalBox: {
+  backgroundColor: '#FFF7ED', borderRadius: 10,
+  padding: 12, marginBottom: 10,
+  borderWidth: 1, borderColor: '#FED7AA',
+  },
+  proposalTitle: { fontSize: 13, fontWeight: '700', color: '#EA580C', marginBottom: 6 },
+  proposalReason: { fontSize: 12, color: '#9A3412', marginBottom: 8, lineHeight: 18 },
+  proposalDetails: { gap: 4, marginBottom: 10 },
+  proposalDetail: { fontSize: 13, color: '#92400E' },
+  proposalActions: { flexDirection: 'row', gap: 8 },
+  rejectProposalButton: {
+    flex: 1, paddingVertical: 8, borderRadius: 8,
+    borderWidth: 1, borderColor: '#FCA5A5',
+    alignItems: 'center', backgroundColor: '#FFF5F5',
+  },
+  rejectProposalText: { color: '#DC2626', fontWeight: '600', fontSize: 12 },
+  acceptProposalButton: {
+    flex: 1, paddingVertical: 8, borderRadius: 8,
+    backgroundColor: '#16A34A', alignItems: 'center',
+  },
+  acceptProposalText: { color: '#FFFFFF', fontWeight: '600', fontSize: 12 },
 });

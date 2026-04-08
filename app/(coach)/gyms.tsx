@@ -14,6 +14,10 @@ interface Gym {
   phone?: string;
   memberCount?: number;
   coachCount?: number;
+  operationalDays?: string;  
+  openTime?: string;         
+  closeTime?: string;         
+  capacity?: number;  
 }
 
 interface MyAffiliation {
@@ -351,6 +355,24 @@ export default function CoachGymsScreen() {
                       <Text style={styles.statLabel}>Contact</Text>
                     </View>
                   </View>
+                  {gym.operationalDays && (
+                    <View style={styles.operationalRow}>
+                      <Text style={styles.operationalIcon}>📅</Text>
+                      <Text style={styles.operationalText}>{gym.operationalDays}</Text>
+                    </View>
+                  )}
+                  {gym.openTime && gym.closeTime && (
+                    <View style={styles.operationalRow}>
+                      <Text style={styles.operationalIcon}>🕐</Text>
+                      <Text style={styles.operationalText}>{gym.openTime} - {gym.closeTime}</Text>
+                    </View>
+                  )}
+                  {gym.capacity && (
+                    <View style={styles.operationalRow}>
+                      <Text style={styles.operationalIcon}>👥</Text>
+                      <Text style={styles.operationalText}>Capacity: {gym.capacity}</Text>
+                    </View>
+                  )}
 
                   <TouchableOpacity
                     style={[
@@ -446,6 +468,24 @@ export default function CoachGymsScreen() {
                       <Text style={styles.statLabel}>Contact</Text>
                     </View>
                   </View>
+                  {gym?.operationalDays && (
+                    <View style={styles.operationalRow}>
+                      <Text style={styles.operationalIcon}>📅</Text>
+                      <Text style={styles.operationalText}>{gym.operationalDays}</Text>
+                    </View>
+                  )}
+                  {gym?.openTime && gym?.closeTime && (
+                    <View style={styles.operationalRow}>
+                      <Text style={styles.operationalIcon}>🕐</Text>
+                      <Text style={styles.operationalText}>{gym.openTime} - {gym.closeTime}</Text>
+                    </View>
+                  )}
+                  {gym?.capacity && (
+                    <View style={styles.operationalRow}>
+                      <Text style={styles.operationalIcon}>👥</Text>
+                      <Text style={styles.operationalText}>Capacity: {gym.capacity}</Text>
+                    </View>
+                  )}
 
                   {/* Unenroll Button */}
                   <TouchableOpacity
@@ -596,4 +636,10 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: '#FDE68A', backgroundColor: '#FFFBEB',
   },
   cancelButtonText: { color: '#CA8A04', fontWeight: '600', fontSize: 14 },
+  operationalRow: {
+  flexDirection: 'row', alignItems: 'center',
+  gap: 6, marginBottom: 4, paddingHorizontal: 16,
+  },
+  operationalIcon: { fontSize: 13 },
+  operationalText: { fontSize: 13, color: '#64748B' },
 });

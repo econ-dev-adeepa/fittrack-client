@@ -14,6 +14,10 @@ interface Gym {
   phone?: string;
   memberCount?: number;
   coachCount?: number;
+  operationalDays?: string;  
+  openTime?: string;         
+  closeTime?: string;         
+  capacity?: number;  
 }
 
 interface MyAffiliation {
