@@ -19,6 +19,9 @@ function Menu() {
 }
 
 export function AdminLayout() {
+  const selectedGym = useGymStore((state) => state.selectedGym);
+  const activeGymName = useGymStore((state) => state.activeGymName); // ← new
+
   return (
     <Tabs
       screenOptions={{
@@ -42,10 +45,15 @@ export function AdminLayout() {
           title: 'My Gym',
           headerTitle: () => (
             <View>
-              <Text style={styles.headerTitle}>My Gym</Text>
-              <Text style={styles.headerSubtitle}>View active gym details</Text>
+              <Text style={styles.headerTitle}>
+                {activeGymName || 'My Gyms'} {/* ← dynamic */}
+              </Text>
+              <Text style={styles.headerSubtitle}>
+                {activeGymName ? 'Gym Dashboard' : 'Select a gym to manage'}
+              </Text>
             </View>
           ),
+          headerShown: !activeGymName,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="business-outline" size={size} color={color} />
           ),

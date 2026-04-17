@@ -120,6 +120,8 @@ export const gymsAPI = {
   enrollAsCoach: (gymId: string) => 
     api.post('/affiliations', { gymId, type: 'COACH' }),
   getMyGyms: () => api.get('/affiliations/my'),
+  getDashboard: (gymId: string) => 
+    api.get(`/gyms/${gymId}/dashboard`),
 };
 
 //Training Plans API
